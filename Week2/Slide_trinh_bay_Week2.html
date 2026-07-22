@@ -28,6 +28,12 @@
       scroll-behavior: smooth;
     }
 
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+    }
+
     body {
       margin: 0;
       background: var(--bg);
@@ -49,101 +55,52 @@
     }
 
     .deck {
-      width: min(1180px, calc(100% - 32px));
-      margin: 0 auto;
-      padding: 28px 0 84px;
-    }
-
-    .topbar {
-      position: sticky;
-      top: 0;
-      z-index: 5;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      min-height: 68px;
-      padding: 12px 0;
-      background: color-mix(in srgb, var(--bg) 92%, transparent);
-      backdrop-filter: blur(14px);
-      border-bottom: 1px solid rgba(216, 221, 213, 0.8);
-    }
-
-    .brand {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      min-width: 0;
-    }
-
-    .brand strong {
-      font-size: clamp(16px, 2vw, 19px);
-      letter-spacing: 0;
-    }
-
-    .brand span {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .controls {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      white-space: nowrap;
-    }
-
-    button,
-    .link-button {
-      border: 1px solid var(--line);
-      background: var(--surface);
-      color: var(--ink);
-      min-height: 40px;
-      padding: 9px 14px;
-      border-radius: 999px;
-      font: inherit;
-      font-weight: 650;
-      cursor: pointer;
-      text-decoration: none;
-      box-shadow: 0 4px 14px rgba(29, 35, 32, 0.05);
-      transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease;
-    }
-
-    button:hover,
-    .link-button:hover {
-      border-color: var(--accent);
-      background: var(--accent-soft);
-    }
-
-    button:active,
-    .link-button:active {
-      transform: translateY(1px);
+      position: relative;
+      width: 100%;
+      height: 100dvh;
     }
 
     .counter {
+      position: fixed;
+      right: clamp(16px, 3vw, 36px);
+      bottom: clamp(14px, 2.5vw, 28px);
+      z-index: 10;
       min-width: 76px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.86);
       color: var(--muted);
+      box-shadow: 0 8px 26px rgba(29, 35, 32, 0.08);
       font-variant-numeric: tabular-nums;
       text-align: center;
+      user-select: none;
     }
 
     .slides {
-      display: grid;
-      gap: 24px;
-      padding-top: 24px;
+      position: relative;
+      width: 100%;
+      height: 100%;
     }
 
     .slide {
-      min-height: calc(100dvh - 124px);
-      display: grid;
+      position: absolute;
+      inset: 0;
+      display: none;
       align-content: center;
       gap: 28px;
-      padding: clamp(28px, 5vw, 64px);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
+      width: 100%;
+      height: 100dvh;
+      padding: clamp(38px, 5.4vw, 76px) clamp(36px, 6vw, 92px) clamp(62px, 7vw, 96px);
+      border: 0;
+      border-radius: 0;
       background: var(--surface);
-      box-shadow: var(--shadow);
-      scroll-margin-top: 92px;
+      box-shadow: none;
+      overflow: auto;
+      outline: none;
+    }
+
+    .slide.active {
+      display: grid;
     }
 
     .slide.compact {
@@ -349,31 +306,17 @@
       font-size: 14px;
     }
 
+    code {
+      padding: 2px 5px;
+      border-radius: 6px;
+      background: #eef2ec;
+      color: #26342e;
+      font-size: 0.92em;
+    }
+
     @media (max-width: 860px) {
-      .deck {
-        width: min(100% - 20px, 720px);
-        padding-top: 12px;
-      }
-
-      .topbar {
-        align-items: flex-start;
-        flex-direction: column;
-      }
-
-      .controls {
-        width: 100%;
-        justify-content: space-between;
-      }
-
-      button,
-      .link-button {
-        padding: 8px 11px;
-      }
-
       .slide {
-        min-height: auto;
-        padding: 24px;
-        scroll-margin-top: 138px;
+        padding: 28px 20px 68px;
       }
 
       .grid.two,
@@ -392,34 +335,34 @@
       html {
         scroll-behavior: auto;
       }
-
-      button,
-      .link-button {
-        transition: none;
-      }
     }
 
     @media print {
+      html,
       body {
+        height: auto;
+        overflow: visible;
         background: #ffffff;
       }
 
       body::before,
-      .topbar {
+      .counter {
         display: none;
       }
 
       .deck {
-        width: 100%;
-        padding: 0;
+        height: auto;
       }
 
       .slides {
-        gap: 0;
+        height: auto;
       }
 
       .slide {
+        position: relative;
+        display: grid;
         min-height: 100vh;
+        height: auto;
         page-break-after: always;
         border: 0;
         box-shadow: none;
@@ -430,24 +373,13 @@
 </head>
 <body>
   <main class="deck">
-    <nav class="topbar" aria-label="Điều hướng slide">
-      <div class="brand">
-        <strong>Anti-Scam Platform</strong>
-        <span>Tổng hợp nội dung Week2</span>
-      </div>
-      <div class="controls">
-        <button type="button" id="prevBtn" aria-label="Slide trước">Trước</button>
-        <span class="counter" id="counter">1 / 9</span>
-        <button type="button" id="nextBtn" aria-label="Slide sau">Sau</button>
-        <a class="link-button" href="Tong_hop_noi_dung_Week2.md">Markdown</a>
-      </div>
-    </nav>
+    <span class="counter" id="counter" aria-live="polite">1 / 16</span>
 
     <div class="slides">
       <section class="slide" id="slide-1">
         <p class="kicker">Week2</p>
         <h1>Thiết kế nền tảng chống scam theo hướng an toàn và có thể giải thích</h1>
-        <p class="lead">Tuần này tập trung vào 4 phần: chứng chỉ uy tín, thuật toán phát hiện, quyền mobile hợp lệ và API backend.</p>
+        <p class="lead">Tuần này chốt phần chứng chỉ cho app, sau đó đi sâu vào thuật toán phát hiện, quyền mobile hợp lệ và API backend.</p>
       </section>
 
       <section class="slide compact" id="slide-2">
@@ -531,150 +463,370 @@
 
       <section class="slide compact" id="slide-4">
         <p class="kicker">Thuật toán</p>
-        <h2>MVP dùng rule-based + heuristic</h2>
-        <div class="grid three">
-          <div class="panel">
-            <span class="tag">MVP</span>
-            <h3>Rule engine</h3>
-            <ul>
-              <li>Score 0-100.</li>
-              <li>SAFE, CAUTION, DANGER.</li>
-              <li>Evidence rõ ràng cho từng rule.</li>
-            </ul>
-          </div>
-          <div class="panel">
-            <span class="tag warning">Mở rộng</span>
-            <h3>Machine learning</h3>
-            <ul>
-              <li>TF-IDF + Naive Bayes cho text.</li>
-              <li>Random Forest/XGBoost cho URL.</li>
-              <li>Cần dataset đã label.</li>
-            </ul>
-          </div>
-          <div class="panel">
-            <span class="tag">Dài hạn</span>
-            <h3>Hybrid</h3>
-            <ul>
-              <li>Rule xử lý nhanh case rõ ràng.</li>
-              <li>ML xử lý vùng không chắc chắn.</li>
-              <li>Vẫn giữ khả năng giải thích.</li>
-            </ul>
-          </div>
+        <h2>Chọn hướng tiếp cận: rule-based trước, ML sau</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Hướng</th>
+                <th>Điểm mạnh</th>
+                <th>Giới hạn</th>
+                <th>Vai trò trong đề tài</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Rule-based</strong></td>
+                <td>Giải thích rõ, triển khai nhanh, dễ kiểm thử, không cần dữ liệu lớn.</td>
+                <td>Cần cập nhật rule thủ công, có thể bị học pattern.</td>
+                <td>MVP chính: scoring 0-100, SAFE/CAUTION/DANGER, trả evidence.</td>
+              </tr>
+              <tr>
+                <td><strong>Machine Learning</strong></td>
+                <td>Tự học pattern, phát hiện mẫu mới, độ chính xác nghiên cứu thường cao.</td>
+                <td>Cần dataset đã label, chi phí training, khó giải thích hơn.</td>
+                <td>Hướng mở rộng: TF-IDF/Naive Bayes cho text, Random Forest/XGBoost cho URL.</td>
+              </tr>
+              <tr>
+                <td><strong>Hybrid</strong></td>
+                <td>Rule xử lý nhanh case rõ ràng, ML xử lý vùng không chắc chắn.</td>
+                <td>Phức tạp hơn vì phải duy trì hai lớp phân tích.</td>
+                <td>Đích dài hạn: vẫn giữ giải thích được, nhưng tăng khả năng bắt mẫu mới.</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
+        <p class="note">Khuyến nghị trong khóa luận: bắt đầu bằng Rule Engine + Heuristic Analysis, sau đó trình bày ML như lộ trình phát triển.</p>
       </section>
 
       <section class="slide compact" id="slide-5">
-        <p class="kicker">Module phát hiện</p>
-        <h2>5 loại input chính</h2>
-        <div class="matrix">
+        <p class="kicker">URL + Form</p>
+        <h2>Phân tích link và trang nhập liệu bằng tín hiệu có thể giải thích</h2>
+        <div class="grid three">
           <div class="panel">
-            <h3>URL/Link</h3>
-            <p>Chuẩn hóa URL, HTTPS, redirect, blacklist và typosquatting.</p>
+            <span class="tag">URL Scanner</span>
+            <h3>Feature extraction</h3>
+            <ul>
+              <li>Chuẩn hóa URL, decode encoding, expand shortener nếu có.</li>
+              <li>Kiểm tra độ dài, subdomain, IP thay domain, HTTPS, ký tự <code>@</code> hoặc <code>//</code>.</li>
+              <li>Domain age, redirect chain, entropy và tỷ lệ ký tự đặc biệt là tín hiệu mở rộng.</li>
+            </ul>
           </div>
           <div class="panel">
-            <h3>Form/HTML</h3>
-            <p>Phát hiện form thu OTP, PIN, thẻ, CCCD hoặc gửi về domain lạ.</p>
+            <span class="tag warning">Reputation</span>
+            <h3>Blacklist + similarity</h3>
+            <ul>
+              <li>Domain blacklist cộng điểm mạnh; whitelist trừ điểm.</li>
+              <li>Redirect chain mỗi bước có thể tăng rủi ro.</li>
+              <li>Typosquatting dùng Levenshtein hoặc Jaro-Winkler so với brand phổ biến tại Việt Nam.</li>
+            </ul>
           </div>
           <div class="panel">
-            <h3>Text</h3>
-            <p>Regex entity, keyword tiếng Việt và pattern giả mạo ngân hàng, shipper, tuyển dụng.</p>
-          </div>
-          <div class="panel">
-            <h3>Phone/Bank</h3>
-            <p>Blacklist, community report, hashing và time-decay score.</p>
-          </div>
-          <div class="panel">
-            <h3>QR</h3>
-            <p>Decode QR, phân loại URL/VietQR/text và gọi module phù hợp.</p>
-          </div>
-          <div class="panel">
-            <h3>Output</h3>
-            <p>Điểm rủi ro, bằng chứng và khuyến nghị hành động cụ thể.</p>
+            <span class="tag danger">Form/HTML</span>
+            <h3>Form đáng ngờ</h3>
+            <ul>
+              <li>Parse bằng Jsoup, trích xuất <code>form</code> và <code>input</code>.</li>
+              <li>Cộng điểm khi có OTP, PIN, CVV, CCCD, tài khoản ngân hàng.</li>
+              <li>Cảnh báo form gửi sang domain khác, không HTTPS hoặc dùng từ khóa dụ dỗ.</li>
+            </ul>
           </div>
         </div>
       </section>
 
       <section class="slide compact" id="slide-6">
-        <p class="kicker">Quyền mobile</p>
-        <h2>Không vượt quyền là quyết định thiết kế</h2>
-        <div class="grid two">
+        <p class="kicker">Text analyzer</p>
+        <h2>Tin nhắn được xử lý bằng entity, keyword và pattern kết hợp</h2>
+        <div class="matrix">
           <div class="panel">
-            <span class="tag">Cho MVP</span>
-            <ul>
-              <li>Share Target để kiểm tra link được chia sẻ.</li>
-              <li>Manual input cho URL, số điện thoại, số tài khoản.</li>
-              <li>QR Scanner dùng camera runtime permission.</li>
-              <li>Clipboard chỉ đọc khi app foreground và user bấm.</li>
-            </ul>
+            <h3>Tiền xử lý</h3>
+            <p>Lowercase, chuẩn hóa số điện thoại/số tiền, loại ký tự nhiễu và tách câu đơn giản; không cần NLP phức tạp cho MVP.</p>
           </div>
           <div class="panel">
-            <span class="tag danger">Không làm</span>
-            <ul>
-              <li>Không đọc SMS tự động.</li>
-              <li>Không đọc notification của app khác.</li>
-              <li>Không dùng Accessibility Service để đọc màn hình.</li>
-              <li>Không xin quyền không phục vụ trực tiếp tính năng.</li>
-            </ul>
+            <h3>Entity extraction</h3>
+            <p>Regex trích URL, số điện thoại Việt Nam, số tài khoản, số tiền, OTP và deadline như "trong X phút".</p>
+          </div>
+          <div class="panel">
+            <h3>Keyword dictionary</h3>
+            <p>Nhóm từ khẩn cấp, giả mạo cơ quan, yêu cầu thông tin nhạy cảm, chuyển tiền và "quá tốt để tin".</p>
+          </div>
+          <div class="panel">
+            <h3>Composite rules</h3>
+            <p>Nhận diện SMS giả mạo ngân hàng, tuyển dụng thu phí, shipper giả, hoàn tiền giả, hoặc khẩn cấp kèm yêu cầu OTP.</p>
+          </div>
+          <div class="panel">
+            <h3>Cross-reference</h3>
+            <p>Nếu tin nhắn chứa URL, số điện thoại hoặc STK, hệ thống gọi tiếp URL Scanner và Phone/Bank Checker.</p>
+          </div>
+          <div class="panel">
+            <h3>Output</h3>
+            <p>Tổng điểm được cắt về 100, phân loại SAFE/CAUTION/DANGER và giải thích bằng các evidence cụ thể.</p>
           </div>
         </div>
-        <p class="note">Thông điệp khi thuyết trình: bảo vệ người dùng phải đi cùng privacy, consent và chính sách nền tảng.</p>
       </section>
 
       <section class="slide compact" id="slide-7">
-        <p class="kicker">API backend</p>
-        <h2>API xoay quanh scan, evidence và report</h2>
+        <p class="kicker">Phone + QR</p>
+        <h2>Số điện thoại, tài khoản ngân hàng và QR dùng lookup cộng đồng</h2>
         <div class="grid two">
           <div class="panel">
-            <h3>Client APIs</h3>
+            <span class="tag">Phone/Bank Checker</span>
             <ul>
-              <li>`/auth/register`, `/auth/login`, `/auth/refresh`.</li>
-              <li>`/scan/url`, `/scan/text`, `/scan/phone`, `/scan/bank-account`, `/scan/qr`.</li>
-              <li>`/scan/history`, `/scan/{scanId}`.</li>
-              <li>`/reports`, `/reports/my`.</li>
+              <li>Chuẩn hóa input: phone về canonical form, STK bỏ space/dash.</li>
+              <li>Hash SHA-256 để hạn chế lưu dữ liệu nhạy cảm dạng thô.</li>
+              <li>Tra blacklist/whitelist, số báo cáo, thời gian báo cáo gần nhất và uy tín người báo cáo.</li>
+              <li>Time-decay: báo cáo mới có trọng số cao hơn báo cáo cũ.</li>
             </ul>
           </div>
           <div class="panel">
-            <h3>Admin APIs</h3>
+            <span class="tag">QR Scanner</span>
             <ul>
-              <li>Quản lý rules.</li>
-              <li>Quản lý blacklist/whitelist.</li>
-              <li>Duyệt báo cáo cộng đồng.</li>
-              <li>Dashboard overview và trends.</li>
+              <li>Decode bằng ZXing để lấy raw data.</li>
+              <li>Phân loại URL, VietQR/banking format, plain text hoặc unknown.</li>
+              <li>VietQR được parse bank_id, account_number, amount và content.</li>
+              <li>QR tiếp tục được định tuyến sang URL/Text/Bank Checker để tính điểm tổng hợp.</li>
             </ul>
           </div>
         </div>
       </section>
 
       <section class="slide compact" id="slide-8">
-        <p class="kicker">Response chuẩn</p>
-        <h2>Kết quả scan phải giúp user quyết định</h2>
-        <div class="grid two">
+        <p class="kicker">Rule engine</p>
+        <h2>Core engine cần tách rule, condition và evidence</h2>
+        <div class="grid three">
           <div class="panel">
-            <h3>Dữ liệu trả về</h3>
+            <h3>Rule Repository</h3>
             <ul>
-              <li>`riskScore`: điểm rủi ro 0-100.</li>
-              <li>`riskLevel`: SAFE, CAUTION hoặc DANGER.</li>
-              <li>`analysis`: đặc trưng, entity và cross-reference.</li>
-              <li>`evidences`: rule match và mức nghiêm trọng.</li>
+              <li>Lưu <code>RiskRule</code>, <code>RuleCondition</code>, <code>RuleAction</code>.</li>
+              <li>Rule có <code>code</code>, <code>name</code>, <code>weight</code>, <code>enabled</code>.</li>
+              <li>Có DB + cache để cập nhật rule mà không sửa code lõi.</li>
             </ul>
           </div>
           <div class="panel">
-            <h3>Khuyến nghị</h3>
+            <h3>Rule Evaluator</h3>
             <ul>
-              <li>BLOCK nếu nguy hiểm rõ ràng.</li>
-              <li>VERIFY nếu cần xác minh thêm.</li>
-              <li>Next steps cụ thể, dễ hiểu.</li>
-              <li>Không chỉ trả về số điểm khô.</li>
+              <li>Duyệt active rules và kiểm tra <code>matches(input)</code>.</li>
+              <li>Cộng weight vào tổng điểm.</li>
+              <li>Thu thập evidence gồm mã rule, tên rule, điểm và giải thích.</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>Rule Composer</h3>
+            <ul>
+              <li>Hỗ trợ AND / OR / NOT cho composite rules.</li>
+              <li>Ưu tiên, weight và threshold mapping.</li>
+              <li>Phân loại: dưới 30 SAFE, 30-59 CAUTION, từ 60 DANGER.</li>
             </ul>
           </div>
         </div>
       </section>
 
-      <section class="slide" id="slide-9">
+      <section class="slide compact" id="slide-9">
+        <p class="kicker">ML roadmap</p>
+        <h2>ML chỉ nên thêm khi có dữ liệu và baseline rõ</h2>
+        <div class="grid two">
+          <div class="panel">
+            <span class="tag warning">Điều kiện chuyển sang ML</span>
+            <ul>
+              <li>Có dataset từ 10.000 mẫu đã label trở lên.</li>
+              <li>Rule-based đã có baseline nhưng false positive còn nhiều.</li>
+              <li>Team đủ năng lực ML hoặc có nguồn lực vận hành model.</li>
+              <li>Cần phát hiện pattern mới chưa biết trước.</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <span class="tag">Roadmap</span>
+            <ul>
+              <li>Thu thập PhishTank, Alexa/legitimate URLs, Tín Nhiệm Mạng, user reports.</li>
+              <li>Feature engineering với URL, domain, content và similarity features.</li>
+              <li>Ưu tiên Random Forest/XGBoost vì có feature importance.</li>
+              <li>KPI: precision >= 95%, recall >= 90%, inference dưới 100ms.</li>
+            </ul>
+          </div>
+        </div>
+        <p class="note">Hybrid dài hạn: rule engine xử lý nhanh case rõ ràng; chỉ đẩy vùng 20-70 điểm sang ML classifier.</p>
+      </section>
+
+      <section class="slide compact" id="slide-10">
+        <p class="kicker">Performance</p>
+        <h2>Thiết kế phải đủ nhanh cho trải nghiệm scan tức thời</h2>
+        <div class="grid three">
+          <div class="panel">
+            <h3>Cache</h3>
+            <ul>
+              <li>L1 Caffeine cho domain reputation, phone/account lookup, recent scan.</li>
+              <li>L2 Redis cho blacklist/whitelist, prediction và thống kê tổng hợp.</li>
+              <li>TTL theo loại dữ liệu: 5 phút, 15 phút, 1 giờ hoặc 24 giờ.</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>Database</h3>
+            <ul>
+              <li>Index theo <code>entity_type</code> + <code>value_hash</code>.</li>
+              <li>Index status cho verified entities.</li>
+              <li>Index lịch sử scan theo user và thời gian.</li>
+              <li>Audit log có thể partition theo tháng.</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>Async</h3>
+            <ul>
+              <li>Phân tích URL có thể chạy background.</li>
+              <li>Domain, SSL và content checks chạy song song.</li>
+              <li>Kết quả được combine trước khi trả risk score.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide compact" id="slide-11">
+        <p class="kicker">Implementation checklist</p>
+        <h2>Lộ trình triển khai module theo độ ưu tiên</h2>
+        <div class="timeline">
+          <div class="step">
+            <strong>Rule Core</strong>
+            <span>Schema RiskRule/RuleCondition, evaluator, unit test và 20-30 rule cơ bản.</span>
+          </div>
+          <div class="step">
+            <strong>URL + Text</strong>
+            <span>Normalize URL, SSL/redirect/domain similarity, regex entity và keyword tiếng Việt.</span>
+          </div>
+          <div class="step">
+            <strong>Phone + QR</strong>
+            <span>Hash lookup, time-decay score, admin CRUD, ZXing và VietQR parser.</span>
+          </div>
+          <div class="step">
+            <strong>ML optional</strong>
+            <span>Collect dataset, extract 41 features, train Random Forest và so sánh rule/ML/hybrid.</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide compact" id="slide-12">
+        <p class="kicker">Quyền mobile</p>
+        <h2>Không vượt quyền là quyết định thiết kế</h2>
+        <div class="grid two">
+          <div class="panel">
+            <span class="tag danger">Vì sao không vượt quyền</span>
+            <ul>
+              <li>Pháp lý: dữ liệu SMS, call log, notification và clipboard đều nhạy cảm.</li>
+              <li>Kỹ thuật: Android/iOS chặn hoặc giới hạn mạnh việc đọc nền.</li>
+              <li>Google Play policy hạn chế quyền SMS/Call Log, Accessibility và background access.</li>
+              <li>OWASP Mobile khuyến nghị permission tối thiểu, consent rõ ràng và data minimization.</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <span class="tag">Quyền MVP hợp lý</span>
+            <ul>
+              <li>Internet/network state cho gọi API backend.</li>
+              <li>Camera runtime permission chỉ khi user quét QR.</li>
+              <li>Share Target để nhận link/text do user chủ động chia sẻ.</li>
+              <li>Notification của chính app để trả kết quả hoặc nhắc cảnh báo, không đọc app khác.</li>
+            </ul>
+          </div>
+        </div>
+        <p class="note">Thông điệp khi thuyết trình: bảo vệ người dùng phải đi cùng privacy, consent và chính sách nền tảng.</p>
+      </section>
+
+      <section class="slide compact" id="slide-13">
+        <p class="kicker">Mobile flows</p>
+        <h2>Thay "chạy ngầm" bằng luồng user chủ động</h2>
+        <div class="matrix">
+          <div class="panel">
+            <h3>Share Target</h3>
+            <p>User share link từ SMS, Zalo, browser hoặc app khác sang Anti-Scam để quét.</p>
+          </div>
+          <div class="panel">
+            <h3>QR Scanner</h3>
+            <p>User mở app, bật camera runtime, scan QR và xem cảnh báo trước khi chuyển tiền.</p>
+          </div>
+          <div class="panel">
+            <h3>Manual Input</h3>
+            <p>Nhập URL, số điện thoại, STK hoặc nội dung tin nhắn khi nền tảng không cho đọc tự động.</p>
+          </div>
+          <div class="panel">
+            <h3>Clipboard foreground</h3>
+            <p>Chỉ đọc clipboard khi app đang mở và user bấm kiểm tra nội dung vừa copy.</p>
+          </div>
+          <div class="panel">
+            <h3>Demo đề xuất</h3>
+            <p>SMS có URL giả mạo ngân hàng, QR giả mạo chuyển khoản, share link từ Zalo.</p>
+          </div>
+          <div class="panel">
+            <h3>Câu trả lời FAQ</h3>
+            <p>Không làm như nTrust/Whoscall trong MVP vì quyền nền tảng, policy store và scope khóa luận.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide compact" id="slide-14">
+        <p class="kicker">API backend</p>
+        <h2>API bao phủ auth, scan, history, report và admin</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nhóm API</th>
+                <th>Endpoint chính</th>
+                <th>Vai trò</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Authentication</strong></td>
+                <td><code>/auth/register</code>, <code>/auth/login</code>, <code>/auth/refresh</code></td>
+                <td>JWT access/refresh token, phân quyền user/admin.</td>
+              </tr>
+              <tr>
+                <td><strong>Scan</strong></td>
+                <td><code>/scan/url</code>, <code>/scan/text</code>, <code>/scan/phone</code>, <code>/scan/bank-account</code>, <code>/scan/qr</code></td>
+                <td>Nhận input từ app, chạy module phân tích và trả risk score.</td>
+              </tr>
+              <tr>
+                <td><strong>History & Reports</strong></td>
+                <td><code>/scan/history</code>, <code>/scan/{scanId}</code>, <code>/reports</code>, <code>/reports/my</code></td>
+                <td>Lưu lịch sử scan, xem chi tiết và gửi báo cáo lừa đảo.</td>
+              </tr>
+              <tr>
+                <td><strong>Admin</strong></td>
+                <td>Rules, risk entities, report review, dashboard, trend analysis.</td>
+                <td>Quản trị rule, blacklist/whitelist, kiểm duyệt report và theo dõi hệ thống.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="slide compact" id="slide-15">
+        <p class="kicker">API response</p>
+        <h2>Kết quả API phải phục vụ quyết định của user</h2>
+        <div class="grid two">
+          <div class="panel">
+            <h3>Response scan</h3>
+            <ul>
+              <li><code>riskScore</code>: 0-100.</li>
+              <li><code>riskLevel</code>: SAFE, CAUTION hoặc DANGER.</li>
+              <li><code>analysis</code>: features, entities và cross-reference.</li>
+              <li><code>evidences</code>: rule match, severity, message.</li>
+              <li><code>recommendations</code>: BLOCK, VERIFY và next steps.</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>Chuẩn vận hành</h3>
+            <ul>
+              <li>Success/error response thống nhất.</li>
+              <li>Error codes cho validation, auth, rate limit và scan failure.</li>
+              <li>Rate limiting theo nhóm endpoint để chống abuse.</li>
+              <li>Webhook optional cho tích hợp tương lai.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide" id="slide-16">
         <p class="kicker">Kết luận</p>
         <h2>Week2 chốt phạm vi MVP thực tế</h2>
-        <p class="lead">MVP nên là app chống scam minh bạch: permission tối thiểu, user chủ động, rule engine giải thích được, API có audit và bằng chứng uy tín đúng phạm vi.</p>
-        <p class="source">Nguồn: `Week2/01_Chung_Chi` và `Week2/02_Phan_Tich_Nghiep_Vu`.</p>
+        <p class="lead">MVP nên là app chống scam minh bạch: permission tối thiểu, user chủ động, rule engine giải thích được, module scan có evidence và API đủ cho report/admin.</p>
+        <p class="source">Nguồn: <code>Week2/01_Chung_Chi</code> và <code>Week2/02_Phan_Tich_Nghiep_Vu</code>.</p>
       </section>
     </div>
   </main>
@@ -682,51 +834,56 @@
   <script>
     const slides = Array.from(document.querySelectorAll(".slide"));
     const counter = document.getElementById("counter");
-    const prevBtn = document.getElementById("prevBtn");
-    const nextBtn = document.getElementById("nextBtn");
-    let current = 0;
+    const initialSlide = slides.findIndex((slide) => `#${slide.id}` === window.location.hash);
+    let current = initialSlide >= 0 ? initialSlide : 0;
 
     function updateCounter(index) {
       counter.textContent = `${index + 1} / ${slides.length}`;
     }
 
-    function goTo(index) {
+    function goTo(index, updateHash = true) {
       current = Math.max(0, Math.min(slides.length - 1, index));
-      slides[current].scrollIntoView({ behavior: "smooth", block: "start" });
+      slides.forEach((slide, slideIndex) => {
+        const isActive = slideIndex === current;
+        slide.classList.toggle("active", isActive);
+        slide.setAttribute("aria-hidden", String(!isActive));
+        if (isActive) {
+          slide.scrollTop = 0;
+        }
+      });
       updateCounter(current);
+      if (updateHash) {
+        history.replaceState(null, "", `#${slides[current].id}`);
+      }
     }
-
-    prevBtn.addEventListener("click", () => goTo(current - 1));
-    nextBtn.addEventListener("click", () => goTo(current + 1));
 
     window.addEventListener("keydown", (event) => {
       if (event.key === "ArrowRight" || event.key === "PageDown") {
+        event.preventDefault();
         goTo(current + 1);
       }
       if (event.key === "ArrowLeft" || event.key === "PageUp") {
+        event.preventDefault();
         goTo(current - 1);
       }
       if (event.key === "Home") {
+        event.preventDefault();
         goTo(0);
       }
       if (event.key === "End") {
+        event.preventDefault();
         goTo(slides.length - 1);
       }
     });
 
-    const observer = new IntersectionObserver((entries) => {
-      const visible = entries
-        .filter((entry) => entry.isIntersecting)
-        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-
-      if (visible) {
-        current = slides.indexOf(visible.target);
-        updateCounter(current);
+    window.addEventListener("hashchange", () => {
+      const hashSlide = slides.findIndex((slide) => `#${slide.id}` === window.location.hash);
+      if (hashSlide >= 0) {
+        goTo(hashSlide, false);
       }
-    }, { threshold: [0.35, 0.65] });
+    });
 
-    slides.forEach((slide) => observer.observe(slide));
-    updateCounter(0);
+    goTo(current, initialSlide < 0);
   </script>
 </body>
 </html>
