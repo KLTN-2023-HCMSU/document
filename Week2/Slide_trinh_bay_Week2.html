@@ -1,0 +1,732 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Week2 - Anti-Scam Platform</title>
+  <link rel="icon" href="data:,">
+  <style>
+    :root {
+      --bg: #f6f7f4;
+      --surface: #ffffff;
+      --ink: #1d2320;
+      --muted: #5d665f;
+      --line: #d8ddd5;
+      --accent: #126d57;
+      --accent-soft: #dcece5;
+      --danger: #a33a2a;
+      --warning: #8b6b14;
+      --shadow: 0 18px 50px rgba(29, 35, 32, 0.08);
+      --radius: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.55;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(90deg, rgba(18, 109, 87, 0.05) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(18, 109, 87, 0.04) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.45), transparent 70%);
+    }
+
+    .deck {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 84px;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 68px;
+      padding: 12px 0;
+      background: color-mix(in srgb, var(--bg) 92%, transparent);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(216, 221, 213, 0.8);
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .brand strong {
+      font-size: clamp(16px, 2vw, 19px);
+      letter-spacing: 0;
+    }
+
+    .brand span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    button,
+    .link-button {
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--ink);
+      min-height: 40px;
+      padding: 9px 14px;
+      border-radius: 999px;
+      font: inherit;
+      font-weight: 650;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 4px 14px rgba(29, 35, 32, 0.05);
+      transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease;
+    }
+
+    button:hover,
+    .link-button:hover {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    button:active,
+    .link-button:active {
+      transform: translateY(1px);
+    }
+
+    .counter {
+      min-width: 76px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      text-align: center;
+    }
+
+    .slides {
+      display: grid;
+      gap: 24px;
+      padding-top: 24px;
+    }
+
+    .slide {
+      min-height: calc(100dvh - 124px);
+      display: grid;
+      align-content: center;
+      gap: 28px;
+      padding: clamp(28px, 5vw, 64px);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      scroll-margin-top: 92px;
+    }
+
+    .slide.compact {
+      align-content: start;
+    }
+
+    .kicker {
+      margin: 0;
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 750;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    h1,
+    h2 {
+      margin: 0;
+      max-width: 900px;
+      letter-spacing: 0;
+      line-height: 1.06;
+    }
+
+    h1 {
+      font-size: clamp(38px, 7vw, 78px);
+    }
+
+    h2 {
+      font-size: clamp(30px, 5vw, 58px);
+    }
+
+    h3 {
+      margin: 0 0 10px;
+      font-size: clamp(18px, 2.2vw, 24px);
+      letter-spacing: 0;
+      line-height: 1.2;
+    }
+
+    p {
+      margin: 0;
+      max-width: 760px;
+      color: var(--muted);
+      font-size: clamp(17px, 2vw, 22px);
+    }
+
+    .lead {
+      font-size: clamp(20px, 2.6vw, 30px);
+      color: #35403a;
+      max-width: 860px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid.three {
+      grid-template-columns: 1.2fr 1fr 1fr;
+    }
+
+    .panel {
+      min-width: 0;
+      padding: clamp(18px, 2vw, 24px);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fbfcfa;
+    }
+
+    .panel strong {
+      color: var(--ink);
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 1.1rem;
+      color: var(--muted);
+      font-size: clamp(16px, 1.7vw, 20px);
+    }
+
+    li + li {
+      margin-top: 8px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fbfcfa;
+    }
+
+    table {
+      width: 100%;
+      min-width: 760px;
+      border-collapse: collapse;
+      font-size: clamp(14px, 1.35vw, 18px);
+    }
+
+    th,
+    td {
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--ink);
+      background: var(--accent-soft);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    td {
+      color: var(--muted);
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      counter-reset: step;
+    }
+
+    .step {
+      position: relative;
+      min-height: 150px;
+      padding: 20px;
+      border-radius: var(--radius);
+      background: var(--accent-soft);
+      border: 1px solid #c5ded3;
+    }
+
+    .step::before {
+      counter-increment: step;
+      content: counter(step);
+      display: inline-grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      margin-bottom: 18px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #ffffff;
+      font-weight: 750;
+    }
+
+    .step strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 18px;
+    }
+
+    .step span {
+      color: #40524a;
+    }
+
+    .matrix {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      min-height: 34px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      color: var(--accent);
+      background: var(--accent-soft);
+      font-weight: 750;
+      font-size: 14px;
+    }
+
+    .danger {
+      color: var(--danger);
+      background: #f4e2df;
+    }
+
+    .warning {
+      color: var(--warning);
+      background: #f3ebce;
+    }
+
+    .note {
+      border-left: 4px solid var(--accent);
+      padding-left: 18px;
+      color: #35403a;
+    }
+
+    .source {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 860px) {
+      .deck {
+        width: min(100% - 20px, 720px);
+        padding-top: 12px;
+      }
+
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .controls {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      button,
+      .link-button {
+        padding: 8px 11px;
+      }
+
+      .slide {
+        min-height: auto;
+        padding: 24px;
+        scroll-margin-top: 138px;
+      }
+
+      .grid.two,
+      .grid.three,
+      .timeline,
+      .matrix {
+        grid-template-columns: 1fr;
+      }
+
+      .step {
+        min-height: auto;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      button,
+      .link-button {
+        transition: none;
+      }
+    }
+
+    @media print {
+      body {
+        background: #ffffff;
+      }
+
+      body::before,
+      .topbar {
+        display: none;
+      }
+
+      .deck {
+        width: 100%;
+        padding: 0;
+      }
+
+      .slides {
+        gap: 0;
+      }
+
+      .slide {
+        min-height: 100vh;
+        page-break-after: always;
+        border: 0;
+        box-shadow: none;
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="deck">
+    <nav class="topbar" aria-label="Điều hướng slide">
+      <div class="brand">
+        <strong>Anti-Scam Platform</strong>
+        <span>Tổng hợp nội dung Week2</span>
+      </div>
+      <div class="controls">
+        <button type="button" id="prevBtn" aria-label="Slide trước">Trước</button>
+        <span class="counter" id="counter">1 / 9</span>
+        <button type="button" id="nextBtn" aria-label="Slide sau">Sau</button>
+        <a class="link-button" href="Tong_hop_noi_dung_Week2.md">Markdown</a>
+      </div>
+    </nav>
+
+    <div class="slides">
+      <section class="slide" id="slide-1">
+        <p class="kicker">Week2</p>
+        <h1>Thiết kế nền tảng chống scam theo hướng an toàn và có thể giải thích</h1>
+        <p class="lead">Tuần này tập trung vào 4 phần: chứng chỉ uy tín, thuật toán phát hiện, quyền mobile hợp lệ và API backend.</p>
+      </section>
+
+      <section class="slide compact" id="slide-2">
+        <p class="kicker">Tổng quan</p>
+        <h2>4 tài liệu nguồn, 1 mạch triển khai</h2>
+        <div class="timeline">
+          <div class="step">
+            <strong>Uy tín</strong>
+            <span>Chứng chỉ, store identity, pháp lý Việt Nam và claim an toàn.</span>
+          </div>
+          <div class="step">
+            <strong>Phát hiện</strong>
+            <span>Rule engine, heuristic, blacklist, community report và ML mở rộng.</span>
+          </div>
+          <div class="step">
+            <strong>Quyền app</strong>
+            <span>Không vượt quyền, ưu tiên user chủ động và permission tối thiểu.</span>
+          </div>
+          <div class="step">
+            <strong>API</strong>
+            <span>Auth, scan, report, admin và rate limit cho backend.</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide compact" id="slide-3">
+        <p class="kicker">Chứng chỉ</p>
+        <h2>Bảng so sánh các chứng chỉ/thủ tục cho app</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Hạng mục</th>
+                <th>Target</th>
+                <th>Chi phí</th>
+                <th>Ứng dụng vào project</th>
+                <th>Lưu ý claim</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Google Play Developer + Play App Signing</strong></td>
+                <td>Dev account + app Android</td>
+                <td>25 USD một lần</td>
+                <td>Ưu tiên cho Android MVP, publish chính thống, app signing, Data safety.</td>
+                <td>Không phải chứng chỉ bảo mật.</td>
+              </tr>
+              <tr>
+                <td><strong>Apple Developer Program</strong></td>
+                <td>Dev account + app iOS</td>
+                <td>99 USD/năm</td>
+                <td>Dùng nếu có iOS, TestFlight/App Store và signing certificate.</td>
+                <td>Chỉ cần khi project có iOS.</td>
+              </tr>
+              <tr>
+                <td><strong>Tín nhiệm mạng - Ứng dụng tín nhiệm</strong></td>
+                <td>App public tại Việt Nam</td>
+                <td>Chưa công bố công khai</td>
+                <td>Nghiên cứu sau MVP nếu app phát hành cho người dùng Việt Nam.</td>
+                <td>Cần liên hệ NCA/Tín nhiệm mạng.</td>
+              </tr>
+              <tr>
+                <td><strong>Đăng ký quyền tác giả chương trình máy tính</strong></td>
+                <td>Sản phẩm phần mềm/source code</td>
+                <td>600.000 VND lệ phí nhà nước</td>
+                <td>Đưa vào phụ lục pháp lý để chứng minh quyền sở hữu app.</td>
+                <td>Không chứng minh app bảo mật.</td>
+              </tr>
+              <tr>
+                <td><strong>Thông báo/đăng ký ứng dụng TMĐT với Bộ Công Thương</strong></td>
+                <td>App có hoạt động TMĐT</td>
+                <td>Chưa thấy phí công khai</td>
+                <td>Chỉ xét nếu app có giao dịch, marketplace hoặc trung gian thương mại.</td>
+                <td>Không áp dụng cho MVP chỉ cảnh báo scam.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">Claim đúng: chứng chỉ hỗ trợ uy tín và minh chứng quy trình. Không claim app an toàn tuyệt đối hoặc được phép đọc SMS/Call Log.</p>
+      </section>
+
+      <section class="slide compact" id="slide-4">
+        <p class="kicker">Thuật toán</p>
+        <h2>MVP dùng rule-based + heuristic</h2>
+        <div class="grid three">
+          <div class="panel">
+            <span class="tag">MVP</span>
+            <h3>Rule engine</h3>
+            <ul>
+              <li>Score 0-100.</li>
+              <li>SAFE, CAUTION, DANGER.</li>
+              <li>Evidence rõ ràng cho từng rule.</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <span class="tag warning">Mở rộng</span>
+            <h3>Machine learning</h3>
+            <ul>
+              <li>TF-IDF + Naive Bayes cho text.</li>
+              <li>Random Forest/XGBoost cho URL.</li>
+              <li>Cần dataset đã label.</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <span class="tag">Dài hạn</span>
+            <h3>Hybrid</h3>
+            <ul>
+              <li>Rule xử lý nhanh case rõ ràng.</li>
+              <li>ML xử lý vùng không chắc chắn.</li>
+              <li>Vẫn giữ khả năng giải thích.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide compact" id="slide-5">
+        <p class="kicker">Module phát hiện</p>
+        <h2>5 loại input chính</h2>
+        <div class="matrix">
+          <div class="panel">
+            <h3>URL/Link</h3>
+            <p>Chuẩn hóa URL, HTTPS, redirect, blacklist và typosquatting.</p>
+          </div>
+          <div class="panel">
+            <h3>Form/HTML</h3>
+            <p>Phát hiện form thu OTP, PIN, thẻ, CCCD hoặc gửi về domain lạ.</p>
+          </div>
+          <div class="panel">
+            <h3>Text</h3>
+            <p>Regex entity, keyword tiếng Việt và pattern giả mạo ngân hàng, shipper, tuyển dụng.</p>
+          </div>
+          <div class="panel">
+            <h3>Phone/Bank</h3>
+            <p>Blacklist, community report, hashing và time-decay score.</p>
+          </div>
+          <div class="panel">
+            <h3>QR</h3>
+            <p>Decode QR, phân loại URL/VietQR/text và gọi module phù hợp.</p>
+          </div>
+          <div class="panel">
+            <h3>Output</h3>
+            <p>Điểm rủi ro, bằng chứng và khuyến nghị hành động cụ thể.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide compact" id="slide-6">
+        <p class="kicker">Quyền mobile</p>
+        <h2>Không vượt quyền là quyết định thiết kế</h2>
+        <div class="grid two">
+          <div class="panel">
+            <span class="tag">Cho MVP</span>
+            <ul>
+              <li>Share Target để kiểm tra link được chia sẻ.</li>
+              <li>Manual input cho URL, số điện thoại, số tài khoản.</li>
+              <li>QR Scanner dùng camera runtime permission.</li>
+              <li>Clipboard chỉ đọc khi app foreground và user bấm.</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <span class="tag danger">Không làm</span>
+            <ul>
+              <li>Không đọc SMS tự động.</li>
+              <li>Không đọc notification của app khác.</li>
+              <li>Không dùng Accessibility Service để đọc màn hình.</li>
+              <li>Không xin quyền không phục vụ trực tiếp tính năng.</li>
+            </ul>
+          </div>
+        </div>
+        <p class="note">Thông điệp khi thuyết trình: bảo vệ người dùng phải đi cùng privacy, consent và chính sách nền tảng.</p>
+      </section>
+
+      <section class="slide compact" id="slide-7">
+        <p class="kicker">API backend</p>
+        <h2>API xoay quanh scan, evidence và report</h2>
+        <div class="grid two">
+          <div class="panel">
+            <h3>Client APIs</h3>
+            <ul>
+              <li>`/auth/register`, `/auth/login`, `/auth/refresh`.</li>
+              <li>`/scan/url`, `/scan/text`, `/scan/phone`, `/scan/bank-account`, `/scan/qr`.</li>
+              <li>`/scan/history`, `/scan/{scanId}`.</li>
+              <li>`/reports`, `/reports/my`.</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>Admin APIs</h3>
+            <ul>
+              <li>Quản lý rules.</li>
+              <li>Quản lý blacklist/whitelist.</li>
+              <li>Duyệt báo cáo cộng đồng.</li>
+              <li>Dashboard overview và trends.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide compact" id="slide-8">
+        <p class="kicker">Response chuẩn</p>
+        <h2>Kết quả scan phải giúp user quyết định</h2>
+        <div class="grid two">
+          <div class="panel">
+            <h3>Dữ liệu trả về</h3>
+            <ul>
+              <li>`riskScore`: điểm rủi ro 0-100.</li>
+              <li>`riskLevel`: SAFE, CAUTION hoặc DANGER.</li>
+              <li>`analysis`: đặc trưng, entity và cross-reference.</li>
+              <li>`evidences`: rule match và mức nghiêm trọng.</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>Khuyến nghị</h3>
+            <ul>
+              <li>BLOCK nếu nguy hiểm rõ ràng.</li>
+              <li>VERIFY nếu cần xác minh thêm.</li>
+              <li>Next steps cụ thể, dễ hiểu.</li>
+              <li>Không chỉ trả về số điểm khô.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide" id="slide-9">
+        <p class="kicker">Kết luận</p>
+        <h2>Week2 chốt phạm vi MVP thực tế</h2>
+        <p class="lead">MVP nên là app chống scam minh bạch: permission tối thiểu, user chủ động, rule engine giải thích được, API có audit và bằng chứng uy tín đúng phạm vi.</p>
+        <p class="source">Nguồn: `Week2/01_Chung_Chi` và `Week2/02_Phan_Tich_Nghiep_Vu`.</p>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const slides = Array.from(document.querySelectorAll(".slide"));
+    const counter = document.getElementById("counter");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    let current = 0;
+
+    function updateCounter(index) {
+      counter.textContent = `${index + 1} / ${slides.length}`;
+    }
+
+    function goTo(index) {
+      current = Math.max(0, Math.min(slides.length - 1, index));
+      slides[current].scrollIntoView({ behavior: "smooth", block: "start" });
+      updateCounter(current);
+    }
+
+    prevBtn.addEventListener("click", () => goTo(current - 1));
+    nextBtn.addEventListener("click", () => goTo(current + 1));
+
+    window.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowRight" || event.key === "PageDown") {
+        goTo(current + 1);
+      }
+      if (event.key === "ArrowLeft" || event.key === "PageUp") {
+        goTo(current - 1);
+      }
+      if (event.key === "Home") {
+        goTo(0);
+      }
+      if (event.key === "End") {
+        goTo(slides.length - 1);
+      }
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+      const visible = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+      if (visible) {
+        current = slides.indexOf(visible.target);
+        updateCounter(current);
+      }
+    }, { threshold: [0.35, 0.65] });
+
+    slides.forEach((slide) => observer.observe(slide));
+    updateCounter(0);
+  </script>
+</body>
+</html>
