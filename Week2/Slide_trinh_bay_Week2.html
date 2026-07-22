@@ -306,6 +306,30 @@
       font-size: 14px;
     }
 
+    .source-tile {
+      display: grid;
+      gap: 4px;
+      width: fit-content;
+      max-width: min(100%, 760px);
+      padding: 10px 14px;
+      border: 1px solid #c5ded3;
+      border-radius: 10px;
+      background: var(--accent-soft);
+      color: #40524a;
+      font-size: clamp(13px, 1.25vw, 15px);
+    }
+
+    .source-tile strong {
+      color: var(--accent);
+      font-size: 0.92em;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .source-tile span {
+      color: #35403a;
+    }
+
     a {
       color: var(--accent);
       text-decoration: underline;
@@ -470,6 +494,10 @@
       <section class="slide compact" id="slide-4">
         <p class="kicker">Thuật toán</p>
         <h2>Chọn hướng tiếp cận: rule-based trước, ML sau</h2>
+        <div class="source-tile">
+          <strong>Phân tích Thuật toán và Kỹ thuật cho Nền tảng Anti-Scam</strong>
+          <span>Section 1. Tổng quan về các hướng tiếp cận</span>
+        </div>
         <div class="table-wrap">
           <table>
             <thead>
@@ -508,6 +536,10 @@
       <section class="slide compact" id="slide-5">
         <p class="kicker">URL + Form</p>
         <h2>Phân tích link và trang nhập liệu bằng tín hiệu có thể giải thích</h2>
+        <div class="source-tile">
+          <strong>Phân tích Thuật toán và Kỹ thuật cho Nền tảng Anti-Scam</strong>
+          <span>Section 2. Module 1: URL/Link Scanner; Section 3. Module 2: Phân tích Form/HTML</span>
+        </div>
         <div class="grid three">
           <div class="panel">
             <span class="tag">URL Scanner</span>
@@ -542,6 +574,10 @@
       <section class="slide compact" id="slide-6">
         <p class="kicker">Text analyzer</p>
         <h2>Tin nhắn được xử lý bằng entity, keyword và pattern kết hợp</h2>
+        <div class="source-tile">
+          <strong>Phân tích Thuật toán và Kỹ thuật cho Nền tảng Anti-Scam</strong>
+          <span>Section 4. Module 3: Phân tích Tin nhắn/Giao dịch</span>
+        </div>
         <div class="matrix">
           <div class="panel">
             <h3>Tiền xử lý</h3>
@@ -573,6 +609,10 @@
       <section class="slide compact" id="slide-7">
         <p class="kicker">Phone + QR</p>
         <h2>Số điện thoại, tài khoản ngân hàng và QR dùng lookup cộng đồng</h2>
+        <div class="source-tile">
+          <strong>Phân tích Thuật toán và Kỹ thuật cho Nền tảng Anti-Scam</strong>
+          <span>Section 5. Module 4: Phone Number & Bank Account Checker; Section 6. Module 5: QR Code Scanner</span>
+        </div>
         <div class="grid two">
           <div class="panel">
             <span class="tag">Phone/Bank Checker</span>
@@ -598,6 +638,10 @@
       <section class="slide compact" id="slide-8">
         <p class="kicker">Rule engine</p>
         <h2>Core engine cần tách rule, condition và evidence</h2>
+        <div class="source-tile">
+          <strong>Phân tích Thuật toán và Kỹ thuật cho Nền tảng Anti-Scam</strong>
+          <span>Section 7. Rule Engine Architecture</span>
+        </div>
         <div class="grid three">
           <div class="panel">
             <h3>Rule Repository</h3>
@@ -629,6 +673,10 @@
       <section class="slide compact" id="slide-9">
         <p class="kicker">ML roadmap</p>
         <h2>ML chỉ nên thêm khi có dữ liệu và baseline rõ</h2>
+        <div class="source-tile">
+          <strong>Phân tích Thuật toán và Kỹ thuật cho Nền tảng Anti-Scam</strong>
+          <span>Section 8. Machine Learning - Hướng mở rộng</span>
+        </div>
         <div class="grid two">
           <div class="panel">
             <span class="tag warning">Điều kiện chuyển sang ML</span>
@@ -655,6 +703,10 @@
       <section class="slide compact" id="slide-10">
         <p class="kicker">Performance</p>
         <h2>Thiết kế phải đủ nhanh cho trải nghiệm scan tức thời</h2>
+        <div class="source-tile">
+          <strong>Phân tích Thuật toán và Kỹ thuật cho Nền tảng Anti-Scam</strong>
+          <span>Section 9. Performance Optimization</span>
+        </div>
         <div class="grid three">
           <div class="panel">
             <h3>Cache</h3>
@@ -687,6 +739,10 @@
       <section class="slide compact" id="slide-11">
         <p class="kicker">Implementation checklist</p>
         <h2>Lộ trình triển khai module theo độ ưu tiên</h2>
+        <div class="source-tile">
+          <strong>Phân tích Thuật toán và Kỹ thuật cho Nền tảng Anti-Scam</strong>
+          <span>Section 11. Implementation Checklist</span>
+        </div>
         <div class="timeline">
           <div class="step">
             <strong>Rule Core</strong>
@@ -710,6 +766,10 @@
       <section class="slide compact" id="slide-12">
         <p class="kicker">Quyền mobile</p>
         <h2>Không vượt quyền là quyết định thiết kế</h2>
+        <div class="source-tile">
+          <strong>Phân tích Quyền hạn Mobile App - Anti-Scam Platform</strong>
+          <span>Section 1. Tại sao KHÔNG được vượt quyền?; Section 2. Quyền nào ĐƯỢC PHÉP cho Anti-Scam App?</span>
+        </div>
         <div class="grid two">
           <div class="panel">
             <span class="tag danger">Vì sao không vượt quyền</span>
@@ -736,6 +796,10 @@
       <section class="slide compact" id="slide-13">
         <p class="kicker">Mobile flows</p>
         <h2>Thay "chạy ngầm" bằng luồng user chủ động</h2>
+        <div class="source-tile">
+          <strong>Phân tích Quyền hạn Mobile App - Anti-Scam Platform</strong>
+          <span>Section 4. Giải pháp thay thế "chạy ngầm" cho MVP; Section 6. Kịch bản Demo cho Giảng viên; Section 7. Câu trả lời cho các câu hỏi thường gặp</span>
+        </div>
         <div class="matrix">
           <div class="panel">
             <h3>Share Target</h3>
@@ -767,6 +831,10 @@
       <section class="slide compact" id="slide-14">
         <p class="kicker">API backend</p>
         <h2>API bao phủ auth, scan, history, report và admin</h2>
+        <div class="source-tile">
+          <strong>API Specification - Anti-Scam Platform</strong>
+          <span>Section 1. Authentication; Section 2. Scan APIs; Section 3. History & Reports APIs; Section 4. Admin APIs</span>
+        </div>
         <div class="table-wrap">
           <table>
             <thead>
@@ -805,6 +873,10 @@
       <section class="slide compact" id="slide-15">
         <p class="kicker">API response</p>
         <h2>Kết quả API phải phục vụ quyết định của user</h2>
+        <div class="source-tile">
+          <strong>API Specification - Anti-Scam Platform</strong>
+          <span>Section 5. Common Response Patterns; Section 6. Rate Limiting; Section 7. Webhooks (Optional - Future)</span>
+        </div>
         <div class="grid two">
           <div class="panel">
             <h3>Response scan</h3>
