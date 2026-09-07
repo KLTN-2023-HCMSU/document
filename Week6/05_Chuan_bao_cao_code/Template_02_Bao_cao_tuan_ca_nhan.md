@@ -1,6 +1,7 @@
 # Báo cáo tuần W[NN] — [Tên]
 
-> **Mẫu số 02 · Báo cáo tuần cá nhân** — nộp mỗi Chủ nhật 21:00, không có ngoại lệ.
+> **Mẫu số 02 · Báo cáo tuần / sprint cá nhân** — nộp Chủ nhật 21:00 cuối mỗi chu kỳ.
+> **Chu kỳ là 1 tuần** trong giai đoạn MVP (07/09 – 01/11/2026), **2 tuần** từ tháng 11/2026 trở đi. Trong 8 tuần nhịp chậm (28/12/2026 – 21/02/2027) thì không nộp.
 > Copy file này, đổi tên thành `Tuan_W<NN>_<Ten>.md`, đặt vào `document/WeekNN/BaoCao/`.
 > **Giữ trong 1 trang.** Báo cáo tuần dài là báo cáo tuần không ai đọc.
 > Xoá các khối hướng dẫn `>` sau khi điền.

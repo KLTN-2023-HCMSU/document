@@ -29,7 +29,7 @@ Nếu không đạt được cả hai thì báo cáo chưa xong, bất kể nó 
 | Mẫu | Tên | Khi nào viết | Ai đọc | Độ dài hợp lý |
 |---|---|---|---|---|
 | [`Template_01`](Template_01_Bao_cao_tinh_nang.md) | **Báo cáo tính năng** (BCTN) | Đóng xong một nhóm `Hxx`/`Kxx`/`Rxx`/`Txx` | 3 thành viên còn lại + giảng viên | 2–4 trang |
-| [`Template_02`](Template_02_Bao_cao_tuan_ca_nhan.md) | **Báo cáo tuần cá nhân** | Chủ nhật hằng tuần, không có ngoại lệ | Cả nhóm | 1 trang |
+| [`Template_02`](Template_02_Bao_cao_tuan_ca_nhan.md) | **Báo cáo tuần / sprint cá nhân** | Chủ nhật cuối mỗi chu kỳ — **hằng tuần** trong giai đoạn MVP, **mỗi 2 tuần** từ tháng 11/2026 | Cả nhóm | 1 trang |
 | [`Template_03`](Template_03_Mo_ta_Pull_Request.md) | **Mô tả Pull Request** | Mỗi lần mở PR | Người review chéo | 15–30 dòng |
 | [`Template_04`](Template_04_Bao_cao_kiem_thu.md) | **Báo cáo kiểm thử** | Nhóm tính năng có yếu tố bảo mật hoặc chấm điểm | Giảng viên + người review | 1–3 trang |
 | [`Template_05`](Template_05_Quyet_dinh_ky_thuat_ADR.md) | **Quyết định kỹ thuật (ADR)** | Khi chọn giữa nhiều phương án, hoặc khi đi ngược tài liệu kiến trúc | Cả nhóm, và hội đồng | 1 trang |
