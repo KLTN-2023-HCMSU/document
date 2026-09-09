@@ -11,6 +11,7 @@
 | 3 | [`03_Ke_hoach_phat_trien/`](03_Ke_hoach_phat_trien/Ke_hoach_phat_trien.md) | Làm theo **thứ tự nào** và vì sao — đồ thị phụ thuộc, đường găng, điểm phối hợp chéo | Khi lập kế hoạch, khi phải chọn việc nào làm trước |
 | 4 | [`04_Timeline_chi_tiet/`](04_Timeline_chi_tiet/Timeline_chi_tiet_theo_tuan.md) | **Ai nộp cái gì, vào ngày nào** — 53 tuần (09/2026 → 09/2027), deadline theo từng người | Mỗi thứ 2 đầu chu kỳ, và mỗi khi lỡ hạn |
 | 5 | [`05_Chuan_bao_cao_code/`](05_Chuan_bao_cao_code/00_Quy_dinh_bao_cao_code.md) | Viết code xong thì báo cáo thế nào để người khác hiểu và dùng được | Trước khi mở PR đầu tiên |
+| 6 | [`06_Kich_ban_trinh_bay/`](06_Kich_ban_trinh_bay/Kich_ban_trinh_bay_Week6.md) | Trình bày 5 tài liệu trên cho thầy thế nào — mở file nào, nói gì, bao lâu | Trước buổi gặp giảng viên |
 
 ---
 
