@@ -7,7 +7,7 @@
 | **Người soạn** | Khải — 16/09/2026 |
 | **Nguồn dữ liệu** | Lịch sử git của cả 3 repo: `Scam-Risk-Detector`, `document`, `Research-Analysis` |
 
-> ⚠️ **Phạm vi của báo cáo này.** Mọi con số dưới đây lấy từ những gì **đã push lên GitHub** tính tới 16/09 11:00. Việc đang làm dở trên máy cá nhân mà chưa push thì báo cáo không nhìn thấy được. Ai có việc như vậy xin bổ sung vào mục 2 trước buổi họp — **đừng để bị ghi nhầm là chưa làm**.
+> **Phạm vi của báo cáo này.** Mọi con số dưới đây lấy từ những gì **đã push lên GitHub** tính tới 16/09 11:00. Việc đang làm dở trên máy cá nhân mà chưa push thì báo cáo không nhìn thấy được. Ai có việc như vậy xin bổ sung vào mục 2 trước buổi họp — **đừng để bị ghi nhầm là chưa làm**.
 
 ---
 
@@ -15,12 +15,12 @@
 
 | Người | Mã | Việc theo timeline | Hạn | Trạng thái |
 |---|---|---|---|---|
-| **Hùng** | H01 | Đăng ký email + mật khẩu, BCrypt ≥ 10, UNIQUE, validate độ mạnh | T6 18/09 | ✅ **Đã giao sớm** — có từ commit 06/09 |
-| **Hùng** | H01 | Migration `users` bằng Flyway | T6 18/09 | ✅ **Đã giao sớm** — `V1__init_auth.sql` |
-| **Khải** | K11 | Dockerfile `api` + `/health` `/ready` trên các service | T5 17/09 | ✅ Xong trước hạn 1 ngày |
-| **Khải** | K12 | GitHub Actions chạy test trên mỗi PR, **chặn merge khi đỏ** | T6 18/09 | 🟡 **Một nửa** — test đã chạy; phần chặn merge bị chặn kỹ thuật, xem mục 4(b) |
-| **Kiên** | R02 | Nối `POST /internal/extract` — URL, SĐT, STK, số tiền, OTP | T6 18/09 | ❌ **Chưa thấy có gì được push** |
-| **Thắng** | T11 | Khung mobile Expo: điều hướng, 4 tab, Secure Storage | T6 18/09 | ❌ **Chưa thấy có gì được push** |
+| **Hùng** | H01 | Đăng ký email + mật khẩu, BCrypt ≥ 10, UNIQUE, validate độ mạnh | T6 18/09 | **Đã giao sớm** — có từ commit 06/09 |
+| **Hùng** | H01 | Migration `users` bằng Flyway | T6 18/09 | **Đã giao sớm** — `V1__init_auth.sql` |
+| **Khải** | K11 | Dockerfile `api` + `/health` `/ready` trên các service | T5 17/09 | **Xong** trước hạn 1 ngày |
+| **Khải** | K12 | GitHub Actions chạy test trên mỗi PR, **chặn merge khi đỏ** | T6 18/09 | **Mới một nửa** — test đã chạy; phần chặn merge bị chặn kỹ thuật, xem mục 4(b) |
+| **Kiên** | R02 | Nối `POST /internal/extract` — URL, SĐT, STK, số tiền, OTP | T6 18/09 | **Chưa thấy có gì được push** |
+| **Thắng** | T11 | Khung mobile Expo: điều hướng, 4 tab, Secure Storage | T6 18/09 | **Chưa thấy có gì được push** |
 
 **Còn đúng 2 ngày tới hạn 18/09.**
 
@@ -30,7 +30,7 @@
 
 ### Hùng — không có hoạt động push nào trong tuần
 
-Commit cuối ở repo code là **06/09**, ở repo tài liệu là **09/09**. Tuy nhiên **phần việc W02 của Hùng đã hoàn thành sớm** từ commit dựng khung 06/09: `AuthController`, `AuthService`, `RegisterRequest` và migration `V1__init_auth.sql` đều đã có và 19 test `AuthFlowTest` đang xanh. Đây là lý do `README.md` của repo code ghi H01–H05 là ✅.
+Commit cuối ở repo code là **06/09**, ở repo tài liệu là **09/09**. Tuy nhiên **phần việc W02 của Hùng đã hoàn thành sớm** từ commit dựng khung 06/09: `AuthController`, `AuthService`, `RegisterRequest` và migration `V1__init_auth.sql` đều đã có và 19 test `AuthFlowTest` đang xanh. Đây là lý do `README.md` của repo code ghi H01–H05 là .
 
 Nói cách khác: **Hùng không chậm, Hùng đang chạy trước lịch.** Tuần sau H02 mới là phần nặng của Hùng.
 
@@ -66,14 +66,14 @@ Việc W02 của Thắng là T11 khung mobile Expo. [`apps/mobile/`](https://git
 | PR mở trong tuần | 2 (#2 đã merge, #4 đang chờ review) · #3 đóng và thay bằng #4 |
 | Test thêm mới | 9 (2 ở `scan-engine`, 7 ở `api`) |
 | Tổng test | `api` 27/27 · `scan-engine` 25/25 · `web` 40/40 — **đều xanh** |
-| Trạng thái CI | 🟢 **Xanh** từ 16/09 — trước đó **7/7 lần chạy đều đỏ** |
+| Trạng thái CI | **Xanh** từ 16/09 — trước đó **7/7 lần chạy đều đỏ** |
 | Nhóm tính năng đóng được trong tuần | K11 (4/4 `P0`) · K12 (1/2 `P0`) |
 
 ---
 
 ## 4. Có gì không ổn — 7 điểm
 
-### (a) 🔴 CI đỏ suốt 10 ngày mà không ai nhận ra
+### (a) Nặng — CI đỏ suốt 10 ngày mà không ai nhận ra
 
 Từ 06/09 tới 16/09, **cả 7 lần chạy CI đều đỏ**. Nguyên nhân: `services/api/mvnw` nằm trong git với mode `100644`, thiếu cờ thực thi, nên bước `./mvnw -B test` chết ngay với **exit code 126**. Dockerfile né được vì có sẵn `RUN chmod +x mvnw`, nên lỗi chỉ lộ ở CI.
 
@@ -83,13 +83,13 @@ Nhưng nguyên nhân gốc không phải cái cờ thực thi — mà là **khô
 
 > **Đề xuất:** người review bắt buộc xem trạng thái CI trước khi Approve. Thêm dòng này vào checklist review chéo trong [quy định báo cáo code](../Week6/05_Chuan_bao_cao_code/00_Quy_dinh_bao_cao_code.md) mục 7.
 
-### (b) 🔴 "Chặn merge khi test đỏ" không làm được — cần cả nhóm quyết
+### (b) Nặng — "chặn merge khi test đỏ" không làm được — cần cả nhóm quyết
 
 Đây là một `P0` của K12. Branch protection đòi **GitHub Pro** cho repo private; API trả `403 Upgrade to GitHub Pro or make this repository public`.
 
 > **Ba lựa chọn, cần chốt trong buổi họp gần nhất:** (1) nâng gói GitHub Pro · (2) để repo công khai · (3) chấp nhận quy ước tay. Không quyết thì `P0` này treo vô thời hạn.
 
-### (c) 🔴 Hai trong bốn người không có sản lượng, và M2 đang bị đe doạ
+### (c) Nặng — hai trong bốn người không có sản lượng, và M2 đang bị đe doạ
 
 Kiên và Thắng đều chưa push gì cho việc W02, hạn còn 2 ngày. Nghiêm trọng hơn là **nhìn sang tuần sau**:
 
@@ -100,7 +100,7 @@ Kiên và Thắng đều chưa push gì cho việc W02, hạn còn 2 ngày. Nghi
 
 > **Đề xuất:** hỏi thẳng Kiên trong standup thứ 2 xem có đang bị chặn gì không. Timeline có sẵn nguyên tắc *"ai xong việc sớm thì giúp người đang chậm"* — Hùng đang chạy trước lịch, là người hỗ trợ được.
 
-### (d) 🔴 Ngày bảo vệ trong timeline sai gần 8 tuần — đã sửa, cần xác nhận
+### (d) Nặng — ngày bảo vệ trong timeline sai gần 8 tuần — đã sửa, cần xác nhận
 
 Timeline bản 07/09 giả định bảo vệ ~15/09/2027 và nộp bản cuối 27/08/2027. Lịch năm học 2026–2027 của khoa, **cột K23 đợt 1**: nộp đơn bảo vệ **28/06 – 03/07/2027**, phản biện **12 – 17/07/2027**, bảo vệ **19 – 31/07/2027**. Ngày nộp cũ rơi **sau khi đợt bảo vệ đã đóng gần 4 tuần**.
 
@@ -108,17 +108,17 @@ Timeline bản 07/09 giả định bảo vệ ~15/09/2027 và nộp bản cuối
 
 > **Cần cả nhóm xác nhận:** nhóm thuộc **K23, bảo vệ đợt 1**. Suy ra từ tên tổ chức `KLTN-2023-HCMSU`. Mọi ngày ở nửa sau timeline treo vào giả định này.
 
-### (e) 🔴 Mốc đăng ký đề tài 09–14/11/2026 — chưa ai nhắc tới
+### (e) Nặng — mốc đăng ký đề tài 09–14/11/2026 — chưa ai nhắc tới
 
 Bốn mốc hành chính của khoa trước đây **không có dòng nào** trong timeline. Gần nhất là **đăng ký đề tài KLTN đợt 1 K23, ngày 09–14/11/2026 — còn khoảng 8 tuần**. Trễ mốc này là hỏng cả năm, không bù được bằng cách code chăm hơn.
 
 Ba mốc còn lại: nộp đề cương 22–27/02/2027 · báo cáo tiến độ 19–24/04/2027 · nộp đơn bảo vệ 28/06–03/07/2027.
 
-### (f) 🟡 Cặp review chéo không hoạt động
+### (f) Vừa — cặp review chéo không hoạt động
 
 PR #2 merge mà không ai review. PR #1 merge lúc CI đang đỏ. Theo bảng ghép cặp trong timeline: Hùng ← Khải, Khải ← Thắng, Kiên ← Hùng, Thắng ← Kiên. Tuần này **không cặp nào chạy**.
 
-### (g) 🟡 Tài liệu nghiên cứu 9 bài đang nằm ở hai nơi
+### (g) Vừa — tài liệu nghiên cứu 9 bài đang nằm ở hai nơi
 
 Bản tổng hợp 9 bài báo + 7 câu hỏi cho thầy hiện tồn tại ở **hai chỗ với nội dung trùng ~98%**:
 
@@ -135,14 +135,14 @@ Bản tổng hợp 9 bài báo + 7 câu hỏi cho thầy hiện tồn tại ở 
 
 | Người | Mã | Việc phải xong | Hạn | Bằng chứng nghiệm thu |
 |---|---|---|---|---|
-| **Hùng** | H02 | 🔴 Đăng nhập trả JWT (15') + refresh token (7 ngày), **lưu hash** trong DB | **T6 25/09** | Bảng `refresh_tokens` không có plain text |
-| **Hùng** | H02 | 🔴 Refresh token rotation + đăng xuất thu hồi token phiên hiện tại | **T6 25/09** | Dùng lại token cũ → `401` |
+| **Hùng** | H02 | Đăng nhập trả JWT (15') + refresh token (7 ngày), **lưu hash** trong DB | **T6 25/09** | Bảng `refresh_tokens` không có plain text |
+| **Hùng** | H02 | Refresh token rotation + đăng xuất thu hồi token phiên hiện tại | **T6 25/09** | Dùng lại token cũ → `401` |
 | **Hùng** | — | `api` gọi `scan-engine` sync, timeout 2s, circuit breaker Resilience4j | T6 25/09 | Tắt `scan-engine` → `api` trả `503`, không treo |
 | **Khải** | K01 | Chuẩn hoá URL + tách thành phần | T6 25/09 | Bộ test 15 URL biến thể ra cùng dạng chuẩn |
 | **Kiên** | R01 | Hoàn thiện 6 nhóm từ khoá + 5 mẫu tổ hợp trong `scan-engine` | T6 25/09 | `pytest` xanh, thêm ≥ 5 case mới |
 | **Kiên** | R01 | Trang quét nội dung trên web: nhập text → hiện điểm và từng bằng chứng | T6 25/09 | Quét thật qua `api`, không phải mock |
 | **Thắng** | T11 | Màn hình kết quả mobile dùng `RiskResultCard`, gọi API qua mock auth | T6 25/09 | Quét văn bản trên mobile ra kết quả thật |
-| **Cả nhóm** | — | 🔴 **NGHIỆM THU M2** | **CN 27/09** | Đăng ký → đăng nhập → `POST /v1/scan/text` bằng token thật → có bản ghi trong `scan_requests` |
+| **Cả nhóm** | — | **NGHIỆM THU M2** | **CN 27/09** | Đăng ký → đăng nhập → `POST /v1/scan/text` bằng token thật → có bản ghi trong `scan_requests` |
 
 ### Nợ mang sang từ W02
 
