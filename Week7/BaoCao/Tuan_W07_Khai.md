@@ -14,8 +14,8 @@
 | Mã | Việc theo timeline | Hạn | Trạng thái | PR |
 |---|---|---|---|---|
 | K11 | Dockerfile `api` | T5 17/09 | ✅ Xong — đã có sẵn từ commit dựng khung 06/09 của Hùng, tuần này chỉ rà lại (multi-stage, chạy user non-root) | — |
-| K11 | Endpoint `/health` + `/ready` trên cả ba service | T5 17/09 | ✅ Xong trước hạn 1 ngày — xem ghi chú (a) | [#2](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/pull/2) · [#3](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/pull/3) |
-| K12 | GitHub Actions chạy `pytest` + `mvn test` trên mỗi PR | T6 18/09 | ✅ Xong trước hạn 2 ngày — xem ghi chú (b) | [#3](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/pull/3) |
+| K11 | Endpoint `/health` + `/ready` trên cả ba service | T5 17/09 | ✅ Xong trước hạn 1 ngày — xem ghi chú (a) | [#2](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/pull/2) · [#4](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/pull/4) |
+| K12 | GitHub Actions chạy `pytest` + `mvn test` trên mỗi PR | T6 18/09 | ✅ Xong trước hạn 2 ngày — xem ghi chú (b) | [#4](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/pull/4) |
 | K12 | Chặn merge khi test đỏ | T6 18/09 | ❌ **Bị chặn** — cần cả nhóm quyết, xem mục 4 | — |
 
 **(a) Về "cả ba service".** Kiến trúc v2 mục 5 định nghĩa ba service backend: `api`, `worker`, `scan-engine`. **`worker` thuộc mốc M4 nên chưa tồn tại.** Hai service đang có đều đã đủ cặp probe. `worker` dùng chung codebase với `api`, chỉ khác entrypoint, nên sẽ thừa hưởng `OpsController` sẵn mà không phải viết lại. Nói "xong 3/3" là không chính xác; nói đúng là **"xong trên mọi service đang tồn tại"**.
@@ -28,7 +28,7 @@
 
 - **Tách liveness khỏi readiness ở `scan-engine`** ([PR #2](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/pull/2), đã merge). `/health` cũ đang gọi `get_ruleset()` — tức là làm việc của readiness. Hậu quả vận hành thật: `rules.json` hỏng → liveness fail → orchestrator restart container → restart không sửa được file hỏng → **crash-loop vô hạn**. Nay `/health` là liveness thuần, `/ready` nạp ruleset và trả `503 OUT_OF_SERVICE`. Healthcheck compose trỏ sang `/ready`.
 
-- **Thêm `/health` + `/ready` cho `api`** ([PR #3](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/pull/3)). Cùng đường dẫn và cùng hình dạng JSON với `scan-engine`, để Nginx và probe orchestrator chỉ phải biết **một** hợp đồng. Thành phần tính vào readiness khai trong `application.yml` chứ không hardcode — thêm Redis khi H07 dùng tới chỉ là sửa một dòng.
+- **Thêm `/health` + `/ready` cho `api`** ([PR #4](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/pull/4)). Cùng đường dẫn và cùng hình dạng JSON với `scan-engine`, để Nginx và probe orchestrator chỉ phải biết **một** hợp đồng. Thành phần tính vào readiness khai trong `application.yml` chứ không hardcode — thêm Redis khi H07 dùng tới chỉ là sửa một dòng.
 
 - **Kiểm chứng bằng docker compose thật, không chỉ bằng unit test.** Dừng `postgres`: `/ready` trả `503 {"failing":{"db":"DOWN"}}`, `/health` vẫn `200`, container thành `(unhealthy)` nhưng **không restart** — log chỉ có đúng một lần `Started ApiApplication`. Bật lại DB thì tự về `(healthy)`. Đây là bằng chứng crash-loop đã tránh được.
 
@@ -44,7 +44,7 @@
 
 | PR đã review | Của ai | Kết luận | Phát hiện đáng chú ý |
 |---|---|---|---|
-| [#1](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/pull/1) | Thắng | Đã merge vào `main` sáng 16/09 | Merge lúc CI đang đỏ — nhưng đỏ là do lỗi `mvnw` của tôi, không phải lỗi code Thắng. Đã sửa ở PR #3 |
+| [#1](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/pull/1) | Thắng | Đã merge vào `main` sáng 16/09 | Merge lúc CI đang đỏ — nhưng đỏ là do lỗi `mvnw` của tôi, không phải lỗi code Thắng. Đã sửa ở PR #4 |
 
 **Tự nhận thiếu sót:** theo bảng ghép cặp review chéo trong timeline, **tôi phải review PR của Hùng**, còn PR của tôi thì Thắng review. Tuần này Hùng không mở PR nào nên tôi không có gì để review; PR #2 của tôi cũng chưa ai review mà đã merge. **Cặp review chéo tuần này coi như không hoạt động.**
 
@@ -64,7 +64,7 @@
 | Chỉ số | Giá trị |
 |---|---|
 | Số commit | 3 commit nội dung + 2 merge commit |
-| Số PR mở / đã merge | 2 mở / 1 đã merge (#2), 1 đang chờ review (#3) |
+| Số PR mở / đã merge | 3 mở / 1 đã merge (#2) · #3 đóng và thay bằng [#4](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/pull/4) vì đặt tên định danh lai Anh-Việt · #4 đang chờ review |
 | Số test thêm mới | **9** — 2 ở `scan-engine`, 7 ở `api` |
 | Tổng test toàn dự án | `api` 27/27 · `scan-engine` 25/25 · `web` 40/40 — tất cả xanh |
 | CI hiện tại | 🟢 **Xanh** — lần đầu tiên kể từ 06/09. Trước đó 7/7 lần chạy đều đỏ |
