@@ -22,7 +22,7 @@ Sửa file `.svg`, rồi chạy lại từ thư mục này:
 
 ```bash
 CH="/c/Program Files/Google/Chrome/Application/chrome.exe"
-for f in 01-boi-canh:960:390 02-tong-the:1120:880 03-luong-scan:1200:440 \
+for f in 01-boi-canh:960:390 02-tong-the:1440:1120 03-luong-scan:1200:440 \
          04-cham-diem:1040:520 05-du-lieu-lua-dao:1100:440; do
   n=${f%%:*}; rest=${f#*:}; w=${rest%%:*}; h=${rest#*:}
   "$CH" --headless --disable-gpu --hide-scrollbars --force-device-scale-factor=2 \
