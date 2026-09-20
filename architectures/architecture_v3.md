@@ -383,6 +383,8 @@ Prediction là một `AnalysisSignal`, sau đó được Risk Fusion kết hợp
 
 [Mở bản vector SVG](diagrams/02-tong-the-v2.svg). Ảnh tổng quan nhóm các module và kết nối theo vai trò; sơ đồ Mermaid bên dưới giữ chi tiết từng thành phần. Đây là thiết kế theo tài liệu v3, chưa xác nhận từ mã nguồn triển khai.
 
+Ảnh hiện có đề xuất cập nhật luồng AI/LLM: Web/Text gửi job AI qua RabbitMQ, worker AI xử lý riêng và trả tín hiệu qua hàng đợi kết quả về Spring Boot. Mermaid và đặc tả AI bên dưới vẫn là bản v3 trước thay đổi này; xem [ghi chú đối chiếu](diagrams/02-tong-the-v2-check.md) về phạm vi cần đồng bộ.
+
 ```mermaid
 flowchart TB
     subgraph Clients[Clients]

@@ -1,14 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1720" height="1470" viewBox="0 0 1720 1470" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="2200" height="1420" viewBox="0 0 2200 1420" role="img" aria-labelledby="title desc">
 <title id="title">Kiến trúc tổng thể Anti-Scam Platform</title>
-<desc id="desc">Thiết kế theo architecture_v3.md: Spring Boot sở hữu kết quả nghiệp vụ; RabbitMQ trao đổi job và tín hiệu với worker; AI tùy chọn; ingestion cập nhật PostgreSQL và Redis; export ghi MinIO/S3.</desc>
+<desc id="desc">Đề xuất cập nhật luồng AI bất đồng bộ từ architecture_v3.md: Spring Boot sở hữu kết quả nghiệp vụ; RabbitMQ trao đổi job và tín hiệu với worker; Web/Text gửi việc AI qua RabbitMQ; worker AI/LLM trả tín hiệu qua hàng đợi kết quả; ingestion cập nhật PostgreSQL và Redis; export ghi MinIO/S3.</desc>
 <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#64748b"/></marker></defs>
 <style>
 text {font-family:Arial,Helvetica,sans-serif;fill:#172333;text-anchor:middle}
 .title{font-size:30px;font-weight:700}.head{font-size:21px;font-weight:700}.body{font-size:18px}.small{font-size:16px;fill:#536477}.label{font-size:16px;fill:#435568;paint-order:stroke;stroke:white;stroke-width:6px;stroke-linejoin:round}
 .box{fill:white;stroke:#99a7b6;stroke-width:1.6}.group{fill:#f7f9fb;stroke:#a4afbc;stroke-width:1.6}.core{fill:#f1f6fb;stroke:#6c90b3;stroke-width:2}
 .flow{fill:none;stroke:#64748b;stroke-width:1.8;marker-end:url(#a)}.sync{marker-start:url(#a)}.optional{stroke-dasharray:7 5}
-</style><rect width="1720" height="1470" fill="white"/>
-<text x="860" y="49" class="title">Kiến trúc tổng thể</text>
+</style><rect width="2200" height="1420" fill="white"/>
+<text x="1100" y="49" class="title">Kiến trúc tổng thể</text>
 <rect x="170" y="110" width="260" height="75" rx="9" class="box"/>
 <text x="300" y="141" class="head">Web người dùng</text>
 <text x="300" y="167" class="small">Next.js</text>
@@ -34,7 +34,7 @@ text {font-family:Arial,Helvetica,sans-serif;fill:#172333;text-anchor:middle}
 <text x="325" y="438" class="small">Kiểm tra và phân loại đầu vào</text>
 <rect x="490" y="389" width="310" height="65" rx="9" class="box"/>
 <text x="645" y="415" class="body">Điều phối scan</text>
-<text x="645" y="438" class="small">Quét cha/con · thời hạn · trạng thái</text>
+<text x="645" y="438" class="small">Quét cha/con · chờ AI · thời hạn</text>
 <rect x="810" y="389" width="310" height="65" rx="9" class="box"/>
 <text x="965" y="415" class="body">Luật &amp; chấm điểm rủi ro</text>
 <text x="965" y="438" class="small">Tổng hợp tín hiệu · kết quả · giải thích</text>
@@ -51,16 +51,20 @@ text {font-family:Arial,Helvetica,sans-serif;fill:#172333;text-anchor:middle}
 <text x="393" y="594" class="label">Async · giao việc</text>
 <path d="M900 625V555" class="flow "/>
 <text x="1020" y="594" class="label">Async · nhận kết quả</text>
-<rect x="300" y="625" width="840" height="100" rx="9" class="box"/>
-<text x="720" y="655" class="head">RabbitMQ — hàng đợi công việc</text>
+<rect x="300" y="625" width="1330" height="100" rx="9" class="box"/>
+<text x="965" y="655" class="head">RabbitMQ — hàng đợi công việc</text>
 <rect x="320" y="671" width="390" height="38" rx="9" class="box"/>
 <text x="515" y="696" class="small">Việc quét / xuất báo cáo</text>
 <rect x="730" y="671" width="390" height="38" rx="9" class="box"/>
-<text x="925" y="696" class="small">Kết quả phân tích</text>
+<text x="925" y="696" class="small">Việc phân tích AI</text>
+<rect x="1140" y="671" width="470" height="38" rx="9" class="box"/>
+<text x="1375" y="696" class="small">Kết quả phân tích / AI</text>
 <path d="M500 725V815" class="flow "/>
 <text x="388" y="774" class="label">Async · nhận việc quét</text>
-<path d="M900 815V725" class="flow "/>
-<text x="746" y="767" class="label">Async · trả tín hiệu / chỉ dấu</text>
+<path d="M1050 815V725" class="flow "/>
+<text x="1060" y="785" class="label">Async · trả tín hiệu</text>
+<path d="M740 815V725" class="flow"/>
+<text x="740" y="767" class="label">Async · Web/Text gửi việc AI</text>
 <rect x="150" y="815" width="990" height="165" rx="9" class="group"/>
 <text x="645" y="846" class="head">Các worker phân tích</text>
 <rect x="170" y="863" width="220" height="96" rx="9" class="box"/>
@@ -82,50 +86,52 @@ text {font-family:Arial,Helvetica,sans-serif;fill:#172333;text-anchor:middle}
 <path d="M150 936H90V502H150" class="flow optional sync"/>
 <text x="44" y="721" class="label" transform="rotate(-90 44 721)">Web / Entity; Text tra chỉ dấu khi cần</text>
 <text x="68" y="721" class="label" transform="rotate(-90 68 721)">Sync · tra cứu / nhận phản hồi</text>
-<path d="M280 959V1055" class="flow optional sync"/>
-<path d="M520 959V1055" class="flow optional sync"/>
-<text x="398" y="1007" class="label">Sync · gọi AI</text>
-<text x="398" y="1031" class="label">nhận dự đoán</text>
-<rect x="170" y="1055" width="480" height="103" rx="9" class="box"/>
-<text x="410" y="1086" class="head">Dịch vụ AI/ML — Python</text>
-<text x="410" y="1112" class="small">Tùy chọn · phục vụ Web / Text worker</text>
-<text x="410" y="1135" class="small">Xác suất · nhãn · phiên bản mô hình</text>
-<path d="M1140 691H1190V1010H1000V1055" class="flow "/>
-<text x="1172" y="874" class="label" transform="rotate(-90 1172 874)">Async · nhận việc xuất báo cáo</text>
-<rect x="860" y="1055" width="280" height="103" rx="9" class="box"/>
-<text x="1000" y="1086" class="head">Worker xuất báo cáo</text>
-<text x="1000" y="1112" class="small">PDF / HTML</text>
-<text x="1000" y="1135" class="small">Ghi file vào MinIO / S3</text>
-<rect x="1290" y="335" width="330" height="570" rx="9" class="group"/>
-<text x="1455" y="371" class="head">Lưu trữ &amp; cache</text>
-<rect x="1310" y="410" width="290" height="103" rx="9" class="box"/>
-<text x="1455" y="441" class="head">PostgreSQL</text>
-<text x="1455" y="467" class="small">Nguồn dữ liệu chuẩn</text>
-<text x="1455" y="490" class="small">Nghiệp vụ + dữ liệu lừa đảo</text>
-<rect x="1310" y="566" width="290" height="103" rx="9" class="box"/>
-<text x="1455" y="597" class="head">Redis</text>
-<text x="1455" y="623" class="small">Cache · rate limit</text>
-<text x="1455" y="646" class="small">Idempotency · điều phối</text>
-<rect x="1310" y="738" width="290" height="103" rx="9" class="box"/>
-<text x="1455" y="769" class="head">MinIO / S3</text>
-<text x="1455" y="795" class="small">Bằng chứng / file đính kèm</text>
-<text x="1455" y="818" class="small">Báo cáo PDF / HTML</text>
-<text x="1455" y="883" class="small">Spring Boot truy cập cả 3 kho</text>
-<path d="M1140 365H1290" class="flow sync"/>
-<text x="1215" y="319" class="label">Đọc / ghi</text>
-<text x="1215" y="342" class="small">SQL · cache · object</text>
-<path d="M1140 1107H1240V790H1310" class="flow "/>
-<text x="1221" y="977" class="label" transform="rotate(-90 1221 977)">ghi file báo cáo</text>
-<rect x="1290" y="1107" width="330" height="110" rx="9" class="box"/>
-<text x="1455" y="1138" class="head">Nạp dữ liệu lừa đảo</text>
-<text x="1455" y="1164" class="small">Chuẩn hóa · kiểm tra · loại trùng</text>
-<text x="1455" y="1187" class="small">Cập nhật dữ liệu → làm mới cache</text>
-<rect x="1290" y="1300" width="330" height="75" rx="9" class="box"/>
-<text x="1455" y="1331" class="head">Nguồn dữ liệu lừa đảo</text>
-<text x="1455" y="1357" class="small">Nguồn bên ngoài · CSV / JSON</text>
-<path d="M1455 1300V1217" class="flow "/>
-<text x="1504" y="1260" class="label">nạp / đồng bộ</text>
-<path d="M1620 1140H1665V460H1600" class="flow "/>
-<path d="M1665 618H1600" class="flow "/>
-<text x="1689" y="860" class="label" transform="rotate(-90 1689 860)">Cập nhật PostgreSQL → làm mới / xóa cache Redis</text>
+<path d="M1280 725V815" class="flow"/>
+<text x="1280" y="765" class="label">Async · nhận việc AI</text>
+<path d="M1530 815V725" class="flow"/>
+<text x="1530" y="787" class="label">Async · trả kết quả AI</text>
+<rect x="1200" y="815" width="430" height="165" rx="9" class="group"/>
+<text x="1415" y="846" class="head">Dịch vụ AI/ML — Python</text>
+<text x="1415" y="878" class="body">Worker AI/LLM · xử lý job riêng</text>
+<text x="1415" y="906" class="small">Giới hạn đồng thời · timeout · retry</text>
+<text x="1415" y="935" class="small">Trả tín hiệu · không quyết định rủi ro</text>
+<text x="1415" y="960" class="small">Đối chiếu kết quả: scanId · taskId</text>
+<path d="M1630 691H1670V1015H1480V1055" class="flow"/>
+<text x="1695" y="869" class="label" transform="rotate(-90 1695 869)">Async · nhận việc xuất báo cáo</text>
+<rect x="1340" y="1055" width="290" height="103" rx="9" class="box"/>
+<text x="1485" y="1086" class="head">Worker xuất báo cáo</text>
+<text x="1485" y="1112" class="small">PDF / HTML</text>
+<text x="1485" y="1135" class="small">Ghi file vào MinIO / S3</text>
+<rect x="1770" y="335" width="330" height="570" rx="9" class="group"/>
+<text x="1935" y="371" class="head">Lưu trữ &amp; cache</text>
+<rect x="1790" y="410" width="290" height="103" rx="9" class="box"/>
+<text x="1935" y="441" class="head">PostgreSQL</text>
+<text x="1935" y="467" class="small">Nguồn dữ liệu chuẩn</text>
+<text x="1935" y="490" class="small">Nghiệp vụ + dữ liệu lừa đảo</text>
+<rect x="1790" y="566" width="290" height="103" rx="9" class="box"/>
+<text x="1935" y="597" class="head">Redis</text>
+<text x="1935" y="623" class="small">Cache · rate limit</text>
+<text x="1935" y="646" class="small">Idempotency · điều phối</text>
+<rect x="1790" y="738" width="290" height="103" rx="9" class="box"/>
+<text x="1935" y="769" class="head">MinIO / S3</text>
+<text x="1935" y="795" class="small">Bằng chứng / file đính kèm</text>
+<text x="1935" y="818" class="small">Báo cáo PDF / HTML</text>
+<text x="1935" y="883" class="small">Spring Boot truy cập cả 3 kho</text>
+<path d="M1140 365H1770" class="flow sync"/>
+<text x="1455" y="319" class="label">Đọc / ghi</text>
+<text x="1455" y="342" class="small">SQL · cache · object</text>
+<path d="M1630 1107H1720V790H1790" class="flow "/>
+<text x="1742" y="977" class="label" transform="rotate(-90 1742 977)">ghi file báo cáo</text>
+<rect x="1770" y="1107" width="330" height="110" rx="9" class="box"/>
+<text x="1935" y="1138" class="head">Nạp dữ liệu lừa đảo</text>
+<text x="1935" y="1164" class="small">Chuẩn hóa · kiểm tra · loại trùng</text>
+<text x="1935" y="1187" class="small">Cập nhật dữ liệu → làm mới cache</text>
+<rect x="1770" y="1300" width="330" height="75" rx="9" class="box"/>
+<text x="1935" y="1331" class="head">Nguồn dữ liệu lừa đảo</text>
+<text x="1935" y="1357" class="small">Nguồn bên ngoài · CSV / JSON</text>
+<path d="M1935 1300V1217" class="flow "/>
+<text x="1984" y="1260" class="label">nạp / đồng bộ</text>
+<path d="M2100 1140H2145V460H2080" class="flow "/>
+<path d="M2145 618H2080" class="flow "/>
+<text x="2169" y="860" class="label" transform="rotate(-90 2169 860)">Cập nhật PostgreSQL → làm mới / xóa cache Redis</text>
 </svg>
