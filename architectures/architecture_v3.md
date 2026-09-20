@@ -379,6 +379,10 @@ Prediction là một `AnalysisSignal`, sau đó được Risk Fusion kết hợp
 
 ### 3.1. Sơ đồ kiến trúc tổng thể
 
+![Kiến trúc tổng thể — Spring Boot, RabbitMQ, worker và dữ liệu](diagrams/02-tong-the-v2.png)
+
+[Mở bản vector SVG](diagrams/02-tong-the-v2.svg). Ảnh tổng quan nhóm các module và kết nối theo vai trò; sơ đồ Mermaid bên dưới giữ chi tiết từng thành phần. Đây là thiết kế theo tài liệu v3, chưa xác nhận từ mã nguồn triển khai.
+
 ```mermaid
 flowchart TB
     subgraph Clients[Clients]
