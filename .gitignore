@@ -1,6 +1,6 @@
 *
 !/.gitignore
-!/Week[0-9]*/
-!/Week[0-9]*/**
-!/architectures/
+!/weekly-reports
+!/weekly-reports/**
+!/architectures
 !/architectures/**
