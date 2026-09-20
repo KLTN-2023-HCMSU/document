@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="520" viewBox="0 0 1040 520" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
+    </marker>
+  </defs>
+  <rect width="1040" height="520" fill="#ffffff"/>
+  <text x="520" y="46" text-anchor="middle" font-size="24" font-weight="600" fill="#0f172a">Điểm rủi ro được tính như thế nào</text>
+  <text x="520" y="72" text-anchor="middle" font-size="14" fill="#64748b">Bốn nguồn tín hiệu, một nơi ra quyết định</text>
+
+  <rect x="40" y="112" width="250" height="58" rx="8" fill="#f0f9ff" stroke="#0ea5e9" stroke-width="1.5"/>
+  <text x="165" y="136" text-anchor="middle" font-size="14" fill="#0f172a">Tín hiệu kỹ thuật</text>
+  <text x="165" y="155" text-anchor="middle" font-size="11.5" fill="#64748b">URL · DNS · TLS · form đăng nhập</text>
+
+  <rect x="40" y="188" width="250" height="58" rx="8" fill="#f0f9ff" stroke="#0ea5e9" stroke-width="1.5"/>
+  <text x="165" y="212" text-anchor="middle" font-size="14" fill="#0f172a">Tín hiệu nội dung</text>
+  <text x="165" y="231" text-anchor="middle" font-size="11.5" fill="#64748b">văn bản · bài đăng giao dịch</text>
+
+  <rect x="40" y="264" width="250" height="58" rx="8" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="165" y="288" text-anchor="middle" font-size="14" fill="#0f172a">Uy tín</text>
+  <text x="165" y="307" text-anchor="middle" font-size="11.5" fill="#64748b">threat intel + báo cáo đã duyệt</text>
+
+  <rect x="40" y="340" width="250" height="58" rx="8" fill="#f5f3ff" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="165" y="364" text-anchor="middle" font-size="14" fill="#0f172a">AI / ML</text>
+  <text x="165" y="383" text-anchor="middle" font-size="11.5" fill="#64748b">xác suất — tuỳ chọn</text>
+
+  <line x1="292" y1="141" x2="386" y2="210" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+  <line x1="292" y1="217" x2="386" y2="238" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+  <line x1="292" y1="293" x2="386" y2="272" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+  <line x1="292" y1="369" x2="386" y2="300" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <rect x="390" y="180" width="220" height="150" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+  <text x="500" y="222" text-anchor="middle" font-size="16" font-weight="600" fill="#0f172a">Chấm điểm rủi ro</text>
+  <text x="500" y="252" text-anchor="middle" font-size="12.5" fill="#475569">Rule Engine khớp luật</text>
+  <text x="500" y="274" text-anchor="middle" font-size="12.5" fill="#475569">rồi cộng trọng số</text>
+  <text x="500" y="300" text-anchor="middle" font-size="11.5" fill="#64748b">theo một phiên bản chính sách</text>
+
+  <line x1="612" y1="228" x2="676" y2="168" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+  <line x1="612" y1="255" x2="676" y2="255" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+  <line x1="612" y1="282" x2="676" y2="345" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <rect x="680" y="138" width="300" height="58" rx="8" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="830" y="163" text-anchor="middle" font-size="14" fill="#0f172a">Điểm rủi ro 0 – 100</text>
+  <text x="830" y="182" text-anchor="middle" font-size="11.5" fill="#64748b">số duy nhất để so sánh và lọc</text>
+
+  <rect x="680" y="226" width="300" height="58" rx="8" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5"/>
+  <text x="830" y="251" text-anchor="middle" font-size="14" fill="#0f172a">SAFE · CAUTION · DANGER</text>
+  <text x="830" y="270" text-anchor="middle" font-size="11.5" fill="#64748b">mức cảnh báo hiển thị cho người dùng</text>
+
+  <rect x="680" y="314" width="300" height="76" rx="8" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="830" y="339" text-anchor="middle" font-size="14" fill="#0f172a">Bằng chứng · giải thích</text>
+  <text x="830" y="358" text-anchor="middle" font-size="14" fill="#0f172a">khuyến nghị hành động</text>
+  <text x="830" y="378" text-anchor="middle" font-size="11.5" fill="#64748b">luôn nói được vì sao ra mức đó</text>
+
+  <text x="520" y="448" text-anchor="middle" font-size="12.5" fill="#64748b">AI chỉ là một tín hiệu, không phải người ra phán quyết.</text>
+  <text x="520" y="470" text-anchor="middle" font-size="12.5" fill="#64748b">Nếu dịch vụ AI chết, hệ thống vẫn chấm điểm được bằng luật + uy tín.</text>
+</svg>

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="440" viewBox="0 0 1200 440" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="440" fill="#ffffff"/>
+  <text x="600" y="46" text-anchor="middle" font-size="24" font-weight="600" fill="#0f172a">Một lần quét đi qua 5 bước</text>
+  <text x="600" y="72" text-anchor="middle" font-size="14" fill="#64748b">Bước 3 và 4 chạy nền — người dùng nhận mã scan ngay, xem kết quả khi xong</text>
+
+  <rect x="40" y="130" width="180" height="104" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="130" y="160" text-anchor="middle" font-size="15" font-weight="600" fill="#0f172a">1. Nhận input</text>
+  <text x="130" y="184" text-anchor="middle" font-size="12" fill="#475569">link · văn bản · SĐT</text>
+  <text x="130" y="202" text-anchor="middle" font-size="12" fill="#475569">số tài khoản · CCCD</text>
+  <text x="130" y="220" text-anchor="middle" font-size="12" fill="#475569">QR</text>
+
+  <rect x="270" y="130" width="180" height="104" rx="8" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="360" y="160" text-anchor="middle" font-size="15" font-weight="600" fill="#0f172a">2. Phân loại</text>
+  <text x="360" y="184" text-anchor="middle" font-size="12" fill="#475569">xác định loại scan</text>
+  <text x="360" y="202" text-anchor="middle" font-size="12" fill="#475569">và chọn đúng worker</text>
+
+  <rect x="500" y="130" width="180" height="104" rx="8" fill="#f0f9ff" stroke="#0ea5e9" stroke-width="1.5"/>
+  <text x="590" y="160" text-anchor="middle" font-size="15" font-weight="600" fill="#0f172a">3. Phân tích</text>
+  <text x="590" y="184" text-anchor="middle" font-size="12" fill="#475569">worker chạy nền,</text>
+  <text x="590" y="202" text-anchor="middle" font-size="12" fill="#475569">trả về các tín hiệu</text>
+
+  <rect x="730" y="130" width="180" height="104" rx="8" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+  <text x="820" y="160" text-anchor="middle" font-size="15" font-weight="600" fill="#0f172a">4. Chấm điểm</text>
+  <text x="820" y="184" text-anchor="middle" font-size="12" fill="#475569">luật + uy tín + AI</text>
+  <text x="820" y="202" text-anchor="middle" font-size="12" fill="#475569">→ điểm 0–100</text>
+
+  <rect x="960" y="130" width="180" height="104" rx="8" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5"/>
+  <text x="1050" y="160" text-anchor="middle" font-size="15" font-weight="600" fill="#0f172a">5. Trả kết quả</text>
+  <text x="1050" y="184" text-anchor="middle" font-size="12" fill="#475569">mức độ · bằng chứng</text>
+  <text x="1050" y="202" text-anchor="middle" font-size="12" fill="#475569">giải thích · khuyến nghị</text>
+
+  <line x1="222" y1="182" x2="266" y2="182" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+  <line x1="452" y1="182" x2="496" y2="182" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+  <line x1="682" y1="182" x2="726" y2="182" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+  <line x1="912" y1="182" x2="956" y2="182" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <polyline points="590,236 590,300 360,300 360,238" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#a)"/>
+  <text x="475" y="322" text-anchor="middle" font-size="12" fill="#b45309">chỉ dấu lồng nhau → tạo scan con</text>
+
+  <text x="600" y="382" text-anchor="middle" font-size="12" fill="#64748b">Ví dụ: một tin nhắn chứa cả link, số điện thoại và số tài khoản; một mã VietQR chứa số tài khoản và nội dung chuyển khoản.</text>
+  <text x="600" y="404" text-anchor="middle" font-size="12" fill="#64748b">Hệ thống tách từng chỉ dấu thành scan con, rồi gộp toàn bộ tín hiệu lại trước khi chấm điểm một lần duy nhất.</text>
+</svg>
