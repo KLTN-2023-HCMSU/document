@@ -6,7 +6,7 @@ Mỗi sơ đồ trả lời đúng một câu hỏi và giữ dưới ~12 khối
 | # | File | Trả lời câu hỏi | Dùng ở đâu |
 | --- | --- | --- | --- |
 | 1 | `01-boi-canh` | Ai dùng hệ thống, hệ thống trao đổi với bên ngoài nào | Slide mở đầu |
-| 2 | `02-tong-the` | Hệ thống gồm những khối chạy nào | Slide kiến trúc chính |
+| 2 | `02-tong-the-v2` | Hệ thống gồm những khối chạy nào | Slide kiến trúc chính |
 | 3 | `03-luong-scan` | Một lần quét đi qua những bước gì | Slide demo luồng |
 | 4 | `04-cham-diem` | Điểm rủi ro ở đâu ra | Slide thuật toán / AI |
 | 5 | `05-du-lieu-lua-dao` | Dữ liệu lừa đảo nạp và tra cứu thế nào | Slide dữ liệu |
@@ -22,7 +22,7 @@ Sửa file `.svg`, rồi chạy lại từ thư mục này:
 
 ```bash
 CH="/c/Program Files/Google/Chrome/Application/chrome.exe"
-for f in 01-boi-canh:960:390 02-tong-the:1440:1120 03-luong-scan:1200:440 \
+for f in 01-boi-canh:960:390 02-tong-the-v2:2200:1420 03-luong-scan:1200:440 \
          04-cham-diem:1040:520 05-du-lieu-lua-dao:1100:440; do
   n=${f%%:*}; rest=${f#*:}; w=${rest%%:*}; h=${rest#*:}
   "$CH" --headless --disable-gpu --hide-scrollbars --force-device-scale-factor=2 \

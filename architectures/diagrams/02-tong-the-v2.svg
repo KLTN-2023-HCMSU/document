@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="2200" height="1420" viewBox="0 0 2200 1420" role="img" aria-labelledby="title desc">
 <title id="title">Kiến trúc tổng thể Anti-Scam Platform</title>
-<desc id="desc">Đề xuất cập nhật luồng AI bất đồng bộ từ architecture_v3.md: Spring Boot sở hữu kết quả nghiệp vụ; RabbitMQ trao đổi job và tín hiệu với worker; Web/Text gửi việc AI qua RabbitMQ; worker AI/LLM trả tín hiệu qua hàng đợi kết quả; ingestion cập nhật PostgreSQL và Redis; export ghi MinIO/S3.</desc>
+<desc id="desc">Kiến trúc đã chốt theo architecture_v3.1.md revision V3.2: Spring Boot sở hữu kết quả nghiệp vụ và là nơi duy nhất tra dữ liệu uy tín; RabbitMQ trao đổi job và tín hiệu với worker; worker bị cô lập, chỉ nói chuyện với RabbitMQ và không gọi ngược lõi; Web/Text gửi việc AI qua RabbitMQ; worker AI/LLM trả tín hiệu qua hàng đợi kết quả; ingestion cập nhật PostgreSQL và Redis; export ghi MinIO/S3.</desc>
 <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#64748b"/></marker></defs>
 <style>
 text {font-family:Arial,Helvetica,sans-serif;fill:#172333;text-anchor:middle}
@@ -40,7 +40,7 @@ text {font-family:Arial,Helvetica,sans-serif;fill:#172333;text-anchor:middle}
 <text x="965" y="438" class="small">Tổng hợp tín hiệu · kết quả · giải thích</text>
 <rect x="170" y="469" width="310" height="65" rx="9" class="box"/>
 <text x="325" y="495" class="body">Tra cứu dữ liệu uy tín</text>
-<text x="325" y="518" class="small">Tra cứu uy tín qua API nội bộ</text>
+<text x="325" y="518" class="small">Lõi tra hộ · worker không tra</text>
 <rect x="490" y="469" width="310" height="65" rx="9" class="box"/>
 <text x="645" y="495" class="body">Lịch sử · Báo cáo</text>
 <text x="645" y="518" class="small">Báo cáo cộng đồng · kiểm duyệt</text>
@@ -48,7 +48,7 @@ text {font-family:Arial,Helvetica,sans-serif;fill:#172333;text-anchor:middle}
 <text x="965" y="495" class="body">Quản trị · Thông báo · Nhật ký</text>
 <text x="965" y="518" class="small">Quản trị · thông báo · theo dõi</text>
 <path d="M500 555V625" class="flow "/>
-<text x="393" y="594" class="label">Async · giao việc</text>
+<text x="393" y="594" class="label">Async · giao việc + dữ liệu uy tín</text>
 <path d="M900 625V555" class="flow "/>
 <text x="1020" y="594" class="label">Async · nhận kết quả</text>
 <rect x="300" y="625" width="1330" height="100" rx="9" class="box"/>
@@ -62,7 +62,7 @@ text {font-family:Arial,Helvetica,sans-serif;fill:#172333;text-anchor:middle}
 <path d="M500 725V815" class="flow "/>
 <text x="388" y="774" class="label">Async · nhận việc quét</text>
 <path d="M1050 815V725" class="flow "/>
-<text x="1060" y="785" class="label">Async · trả tín hiệu</text>
+<text x="1060" y="785" class="label">Async · tín hiệu + chỉ dấu mới</text>
 <path d="M740 815V725" class="flow"/>
 <text x="740" y="767" class="label">Async · Web/Text gửi việc AI</text>
 <rect x="150" y="815" width="990" height="165" rx="9" class="group"/>
@@ -78,14 +78,12 @@ text {font-family:Arial,Helvetica,sans-serif;fill:#172333;text-anchor:middle}
 <rect x="650" y="863" width="220" height="96" rx="9" class="box"/>
 <text x="760" y="890" class="body">Tra cứu uy tín</text>
 <text x="760" y="915" class="small">SĐT · số tài khoản · CCCD</text>
-<text x="760" y="939" class="small">Đối chiếu dữ liệu uy tín</text>
+<text x="760" y="939" class="small">Dùng uy tín kèm trong job</text>
 <rect x="890" y="863" width="220" height="96" rx="9" class="box"/>
 <text x="1000" y="890" class="body">Đọc QR</text>
 <text x="1000" y="915" class="small">QR / VietQR · tách chỉ dấu</text>
 <text x="1000" y="939" class="small">Trả chỉ dấu để tạo quét con</text>
-<path d="M150 936H90V502H150" class="flow optional sync"/>
-<text x="44" y="721" class="label" transform="rotate(-90 44 721)">Web / Entity; Text tra chỉ dấu khi cần</text>
-<text x="68" y="721" class="label" transform="rotate(-90 68 721)">Sync · tra cứu / nhận phản hồi</text>
+<text x="112" y="897" class="label" transform="rotate(-90 112 897)">Worker chỉ nói chuyện với RabbitMQ</text>
 <path d="M1280 725V815" class="flow"/>
 <text x="1280" y="765" class="label">Async · nhận việc AI</text>
 <path d="M1530 815V725" class="flow"/>

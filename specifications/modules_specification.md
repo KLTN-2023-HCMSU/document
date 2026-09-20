@@ -2,6 +2,11 @@
 
 > Mỗi **Mxx** là một module có owner riêng. Owner chịu trách nhiệm xuyên suốt từ UI liên quan → API/event contract → backend use case → worker (nếu có) → data/storage → test. Các module dùng chung contract nhưng không chia ownership theo kiểu “frontend team / backend team”.
 
+> **Đồng bộ kiến trúc:** tài liệu này khớp với `../architectures/architecture_v3.1.md` **revision V3.2 (Async AI Alignment)** và bộ sơ đồ trong `../architectures/diagrams/`. Hai thay đổi lớn so với bản trước:
+>
+> 1. **M11 AI/ML không còn là service được gọi đồng bộ** mà là worker tiêu thụ hàng đợi. M02/M03 publish AI task rồi trả kết quả ngay; M12 chịu trách nhiệm chờ và đóng AI task.
+> 2. **Worker được cô lập hoàn toàn.** Không worker nào gọi ngược API của core hay chạm PostgreSQL/Redis. Chỉ dấu phát hiện giữa chừng được trả về qua `derivedIndicators[]` kèm `handling`; M12 tra uy tín rồi gắn signal hoặc tạo scan con. Xem `architecture_v3.1.md` mục 4.6.1.
+
 ## Module Catalog
 
 | ID | Module | Type | Actor chính |
@@ -16,7 +21,7 @@
 | **M08** | Threat Intelligence Management | Admin/Internal Feature | Admin, Internal Scanner |
 | **M09** | Rule, Risk Policy & Admin Operations | Shared/Admin Feature | Admin, All Scan Modules |
 | **M10** | Notification & User Follow-up | End-to-End Feature | User, Admin |
-| **M11** | AI/ML Inference | Shared Capability | M02, M03 |
+| **M11** | AI/ML Inference | Shared Capability (async worker) | M02, M03 qua M12 |
 | **M12** | Shared Scan Platform | Shared Platform | M02–M06, M08–M11 |
 | **M13** | Platform Infrastructure | Infrastructure | Toàn hệ thống |
 
@@ -205,7 +210,7 @@ Frontend có thể hoàn thiện login/profile/route guard trước khi backend 
 | UI | User Web, Mobile |
 | API | `POST /v1/scans/url` |
 | Worker | Web/URL Scanner Worker |
-| Shared dependencies | M08 Threat Intelligence, M09 Risk Policy, M11 AI, M12 Scan Platform |
+| Shared dependencies | M08 Threat Intelligence, M09 Risk Policy, M11 AI (async), M12 Scan Platform |
 
 ## 2. Mục đích
 
@@ -299,6 +304,16 @@ request key: scan.url.requested
 result key:  scan.url.analyzed
 ```
 
+AI (tùy chọn, bất đồng bộ — xem M11):
+
+```text
+queue:       q.ai.analyze
+request key: ai.analysis.requested     (worker publish, kind = URL_FEATURES | WEB_CONTENT)
+result key:  ai.analysis.completed | ai.analysis.failed   (M11 publish vào q.scan.result)
+```
+
+Worker khai `taskId` vừa gửi vào `pendingAiTasks[]` của `scan.url.analyzed`; M12 dựa vào đó để biết còn phải chờ AI.
+
 ## 7. Backend / worker responsibilities
 
 **Backend**
@@ -328,10 +343,15 @@ analyzeUrl(url)
 ├── analyzeTlsHttps()
 ├── detectTyposquatting()
 ├── usePreEnrichedReputationContext()
+├── collectNewHostsAsIndicators()
 ├── safeFetchPublicContent()
 ├── analyzeHtmlForm()
-└── callUrlModelIfEnabled()
+└── publishAiTaskIfEnabled()
 ```
+
+`collectNewHostsAsIndicators()` gom host mới xuất hiện trong chuỗi redirect thành `DerivedIndicator` với `handling=REPUTATION_ONLY`. Worker **không tra uy tín cho chúng** và không gọi ngược core; M12 tra khi consume result.
+
+`publishAiTaskIfEnabled()` chỉ sinh `taskId`, publish `ai.analysis.requested` và khai `taskId` vào `pendingAiTasks[]`. Worker **không chờ AI**: job của nó kết thúc ngay sau khi publish result. Nếu publish AI task thất bại thì không được khai `taskId` đó, nếu không scan sẽ chờ một task không bao giờ tới.
 
 ## 8. Input
 
@@ -349,10 +369,13 @@ Worker output:
 ```text
 Technical AnalysisSignal[]
 Web-content AnalysisSignal[]
-Reputation signals
-Optional AI signal
-DerivedIndicator[]
+DerivedIndicator[]      (host mới, handling=REPUTATION_ONLY)
+pendingAiTasks[]        (taskId của AI task đã gửi, rỗng nếu không bật AI)
 ```
+
+Reputation signal **không** nằm trong output của worker này: worker chỉ tiêu thụ `reputationContext` kèm trong job, còn chỉ dấu mới thì để M12 tra.
+
+AI signal **không** nằm trong output của worker này. Nó về sau, qua `q.scan.result`, do M11 publish và M12 ghép theo `scanId` + `taskId`.
 
 Final output:
 
@@ -374,15 +397,17 @@ scan_signals (optional)
 
 - Worker chỉ tạo signal, không tự quyết định final verdict;
 - known URL/domain reputation được pre-enrich trước khi publish job;
-- redirect/domain mới phát sinh mới được dynamic lookup;
-- AI là optional signal;
+- redirect/domain mới phát sinh được trả về `derivedIndicators[]`, **không** tra tại worker;
+- worker không gọi API core, không đọc PostgreSQL/Redis;
+- AI là optional signal và **về bất đồng bộ**; worker không bao giờ chờ AI;
 - HTML/Form chỉ là bước phân tích nội bộ;
 - output phải explainable bằng evidence thật có.
 
 ## 12. Failure / degraded behavior
 
-- AI timeout → tiếp tục không có AI signal;
-- threat lookup timeout → `REPUTATION_UNAVAILABLE`, scan tiếp tục;
+- AI task timeout hoặc `ai.analysis.failed` → M12 đóng task, scan finalize với `degraded=true` và renormalize trọng số, không coi AI = 0;
+- publish AI task thất bại → không khai `taskId`, scan chạy tiếp như khi AI tắt;
+- reputation lookup lỗi → lỗi này xảy ra **ở M12/M08, không ở worker**; scan nhận `REPUTATION_UNAVAILABLE` và finalize degraded;
 - fetch website lỗi → vẫn dùng lexical/DNS/TLS/reputation signals còn lại;
 - worker fail sau retry → shared scan platform xử lý fail/degraded theo policy.
 
@@ -397,13 +422,13 @@ SSRF protection bắt buộc:
 - response body limit = 5 MB;
 - connect/read timeout;
 - không forward internal credential/header;
-- worker không truy cập trực tiếp PostgreSQL/Redis.
+- worker không truy cập PostgreSQL/Redis và không gọi API của core; kết nối ra ngoài duy nhất ngoài RabbitMQ là fetch public content.
 
 ## 14. Dependencies
 
 - M08 Threat Intelligence;
 - M09 Rule/Risk Policy;
-- M11 AI/ML optional;
+- M11 AI/ML optional, **chỉ qua RabbitMQ**, không gọi trực tiếp;
 - M12 Shared Scan Platform;
 - M13 Infrastructure.
 
@@ -538,16 +563,25 @@ request key: scan.text.requested
 result key:  scan.text.analyzed
 ```
 
+AI (tùy chọn, bất đồng bộ — xem M11):
+
+```text
+queue:       q.ai.analyze
+request key: ai.analysis.requested     (worker publish, kind = TEXT_CONTENT)
+result key:  ai.analysis.completed | ai.analysis.failed   (M11 publish vào q.scan.result)
+```
+
 ## 7. Backend / worker responsibilities
 
 **Backend**
 - validate text size;
 - create scan;
 - publish text job;
-- nhận `DerivedIndicator[]`;
+- nhận `DerivedIndicator[]` và `pendingAiTasks[]`;
 - tạo child scans URL/Phone/Bank;
-- completion barrier;
-- finalize partial/degraded nếu child fail/timeout.
+- đăng ký AI task đang chờ;
+- completion barrier trên cả child scan lẫn AI task;
+- finalize partial/degraded nếu child hoặc AI task fail/timeout.
 
 **Text Worker**
 
@@ -565,9 +599,13 @@ analyzeText(text, contentType)
 ├── detectUrgencyAndImpersonationCues()
 ├── detectPaymentCredentialRequestCues()
 ├── classifyScamScenarioByRules()
-├── callTextModelIfEnabled()
-└── return signals + derivedIndicators
+├── publishAiTaskIfEnabled()
+└── return signals + derivedIndicators + pendingAiTasks
 ```
+
+Chỉ dấu Text Worker trích ra (URL, phone, bank account) đi thẳng vào `derivedIndicators[]` với `handling` phù hợp. Worker **không tra uy tín cho chúng** — đó là việc của M12.
+
+Giống M02: worker publish AI task rồi kết thúc job ngay, khai `taskId` vào `pendingAiTasks[]` để M12 biết còn phải chờ.
 
 ## 8. Input
 
@@ -583,10 +621,12 @@ optional parentScanId/depth
 ```text
 Text/Content AnalysisSignal[]
 DerivedIndicator[]
-Optional AI prediction
+pendingAiTasks[]        (taskId của AI task đã gửi, rỗng nếu không bật AI)
 Scenario metadata
 Final RiskResult
 ```
+
+AI prediction về sau qua `q.scan.result` do M11 publish, không nằm trong result event của Text Worker.
 
 ## 10. Data ownership
 
@@ -621,13 +661,15 @@ Rules:
 ## 12. Failure / degraded behavior
 
 - child scan timeout → parent có thể `COMPLETED + degraded=true`;
-- AI unavailable → renormalize risk policy, không xem AI = 0;
+- AI task timeout hoặc `ai.analysis.failed` → đóng task, renormalize risk policy, không xem AI = 0;
+- AI result về sau khi scan đã `COMPLETED` → ghi nhận late signal, không sửa `RiskResult` đã trả;
 - malformed text/oversized input → fail fast;
 - partial indicator extraction vẫn có thể tạo result nếu đủ signal.
 
 ## 13. Security / privacy
 
 - text input tối đa initial 20,000 ký tự;
+- worker không gọi API core, không đọc PostgreSQL/Redis;
 - redact/mask CCCD-like value trong log/evidence;
 - tránh lưu raw sensitive content lâu hơn cần thiết nếu privacy policy yêu cầu;
 - nested indicators phải được normalize trước khi route.
@@ -637,7 +679,7 @@ Rules:
 - M02 URL Scan cho nested URL;
 - M04 Entity Check cho Phone/Bank;
 - M09 Risk Policy;
-- M11 AI optional;
+- M11 AI optional, **chỉ qua RabbitMQ**, không gọi trực tiếp;
 - M12 Shared Scan Platform.
 
 ## 15. Phát triển độc lập / mock contract
@@ -817,6 +859,7 @@ scan_results
 ## 11. Business rules / invariants
 
 - `NO_DATA` ≠ `SAFE_VERIFIED`;
+- Entity Worker chỉ tính toán trên `reputationContext` kèm trong job; nó **không** tự tra dữ liệu uy tín;
 - unverified community report không tạo hard blacklist;
 - Phone/Bank dùng chung pipeline nhưng validation strategy riêng;
 - source confidence/freshness phải ảnh hưởng signal;
@@ -824,7 +867,7 @@ scan_results
 
 ## 12. Failure / degraded behavior
 
-- Threat Intelligence unavailable → trả `REPUTATION_UNAVAILABLE` và result degraded phù hợp;
+- Threat Intelligence unavailable → M12/M08 phát `REPUTATION_UNAVAILABLE` lúc pre-enrich; job vẫn được giao và result degraded phù hợp;
 - no match → hiển thị neutral wording;
 - invalid phone/account → reject trước khi queue;
 - stale source → evidence phải thể hiện freshness nếu có.
@@ -1472,7 +1515,7 @@ Mở Threat Sources
 - source version/timestamp;
 - PostgreSQL upsert;
 - Redis refresh/invalidation;
-- internal threat lookup;
+- reputation query dùng nội bộ trong core (pre-enrich + deferred enrichment);
 - ingestion status/metrics.
 
 ## 5. UI/UX ownership
@@ -1498,11 +1541,14 @@ POST /v1/admin/threat-sources/{id}/sync
 PATCH /v1/admin/threat-sources/{id}
 ```
 
-Internal lookup contract:
+Lookup contract — **in-process, không phải HTTP endpoint**:
 
 ```text
-ThreatQuery.lookup(indicator) -> ReputationContext
+ThreatQuery.lookup(indicator)      -> ReputationContext
+ThreatQuery.lookupBatch(indicators) -> Map<indicator, ReputationContext>
 ```
+
+Đây là interface Java gọi trong cùng process Spring Boot, dùng ở hai chỗ: M12 pre-enrich trước khi publish job, và M12 tra `derivedIndicators` khi consume worker result. **Không expose endpoint nào cho worker** — worker đã bị cô lập, xem `architecture_v3.1.md` mục 4.6.1.
 
 RabbitMQ:
 
@@ -1518,7 +1564,7 @@ Backend:
 - enqueue ingestion;
 - expose sync status;
 - cache-aside ThreatQuery;
-- internal dynamic lookup endpoint.
+- batch lookup cho `derivedIndicators` để một result event chỉ tốn một lượt tra.
 
 Ingestion Worker:
 
@@ -1573,15 +1619,15 @@ PostgreSQL = source of truth; Redis = hot cache.
 - source phải có identity/version/freshness metadata;
 - deduplicate ingestion;
 - verified community data từ M07 có thể trở thành một source/reference;
-- worker scan không query DB trực tiếp;
+- worker scan không query DB trực tiếp và không gọi ngược core;
 - cache miss → PostgreSQL → cache result;
-- dynamic lookup phải bounded.
+- mọi lookup phải bounded về thời gian và số lượng indicator mỗi lượt.
 
 ## 12. Failure / degraded behavior
 
 - ingestion source unavailable → giữ dữ liệu cũ nếu policy cho phép, ghi stale/error;
 - Redis unavailable → fallback PostgreSQL;
-- internal dynamic lookup timeout initial ~500 ms → trả unavailable;
+- reputation lookup timeout initial ~500 ms → trả `REPUTATION_UNAVAILABLE`, lỗi này phát sinh trong lõi chứ không ở worker;
 - bad source record → skip/quarantine theo policy, không làm hỏng toàn batch.
 
 ## 13. Security / privacy
@@ -1786,6 +1832,16 @@ renormalize available weights
 
 không gán missing signal = 0.
 
+Nhóm AI là nhóm **hay vắng nhất** vì nó về bất đồng bộ qua `q.ai.analyze` (xem M11). Ba trường hợp đều dẫn tới cùng một cách xử lý — renormalize ba nhóm còn lại và đánh `degraded=true`:
+
+```text
+AI tắt bằng cấu hình
+ai.analysis.failed
+AI task hết aiTaskDeadline
+```
+
+Do đó `fusionPolicy` không được giả định AI luôn có mặt, và điểm của một scan có AI với cùng scan không AI phải so sánh được với nhau.
+
 Threshold initial:
 
 ```text
@@ -1822,7 +1878,7 @@ Mọi policy phải versioned/configurable.
 
 - M01 RBAC;
 - M07/M08 reputation/community signals;
-- M11 AI signals;
+- M11 AI signals (bất đồng bộ, có thể vắng);
 - M12 Signal Aggregation;
 - M13 DB.
 
@@ -2017,16 +2073,20 @@ UI notification center dùng seeded notifications.
 
 | Thuộc tính | Giá trị |
 | --- | --- |
-| Type | Shared Capability |
-| Actor | Không có end-user trực tiếp; consumers là M02/M03 |
-| Runtime | Python / FastAPI đề xuất |
-| Input | normalized URL/Text/Web features/content |
-| Output | prediction signal |
+| Type | Shared Capability — **async worker**, không phải service đồng bộ |
+| Actor | Không có end-user trực tiếp; M02/M03 gửi việc, M12 nhận kết quả |
+| Runtime | Python worker consume RabbitMQ (`pika` / `aio-pika`); FastAPI chỉ giữ cho health/diagnostics |
+| Consume | `q.ai.analyze` — routing key `ai.analysis.requested` |
+| Publish | `q.scan.result` — `ai.analysis.completed` / `ai.analysis.failed` |
+| Input | AI task: `scanId`, `taskId`, `kind`, features/content |
+| Output | prediction signal kèm `scanId` + `taskId` |
 | Business verdict | Không thuộc module này |
 
 ## 2. Mục đích
 
-Cung cấp model inference dùng chung cho URL/Text scan. Python service trả prediction có version/latency; final business verdict vẫn thuộc M09.
+Cung cấp model/LLM inference dùng chung cho URL/Text scan. Python worker trả prediction có version/latency; final business verdict vẫn thuộc M09.
+
+**Lý do module này là worker chứ không phải service REST:** thời gian chờ model, nhất là LLM, dài và không đoán trước được. Nếu M02/M03 gọi đồng bộ, mỗi lần AI chậm là một Web/Text Worker thread bị giữ chỗ và throughput của cả pipeline scan tụt theo. Đưa việc chờ vào một hàng đợi riêng khiến độ trễ AI chỉ ảnh hưởng tới AI, và cho phép giới hạn đồng thời của model tách khỏi giới hạn đồng thời của scan.
 
 ## 3. Góc nhìn người dùng / actor journey
 
@@ -2034,21 +2094,24 @@ User không gọi AI service trực tiếp. Dưới góc nhìn user:
 
 ```text
 User scan URL/Text
-→ hệ thống có thể dùng AI để bổ sung tín hiệu
+→ hệ thống có thể gửi một AI task chạy song song với phần phân tích còn lại
 → user vẫn nhận một RiskResult thống nhất
-→ nếu AI tạm unavailable, scan vẫn hoàn thành bằng rule/reputation nếu đủ dữ liệu
+→ nếu AI chậm quá aiTaskDeadline hoặc unavailable,
+  scan vẫn hoàn thành bằng rule/reputation với degraded=true
 ```
 
 AI không được làm UX trở thành “AI nói nguy hiểm” mà không có evidence liên quan.
 
 ## 4. Phạm vi nghiệp vụ
 
-- inference API;
-- model routing;
+- consume AI task từ `q.ai.analyze`;
+- model routing theo `kind`;
 - model-specific preprocessing;
 - model loading/version registry;
-- inference;
+- model / LLM inference;
 - probability/label/latency metadata;
+- giới hạn đồng thời (`prefetch_count`), timeout và retry nội bộ;
+- publish kết quả thành công **và thất bại** vào `q.scan.result`;
 - health/readiness;
 - optional URL/Text/Web models.
 
@@ -2060,55 +2123,104 @@ Admin/model diagnostics UI nếu sau này có phải là scope riêng. User-faci
 
 ## 6. API / event contracts
 
-Internal API ví dụ:
+RabbitMQ (giao diện chính — luồng scan không dùng HTTP):
 
 ```text
-POST /internal/inference/url
-POST /internal/inference/text
+consume queue: q.ai.analyze
+request key:   ai.analysis.requested
+result keys:   ai.analysis.completed | ai.analysis.failed  → q.scan.result
+DLQ:           q.ai.analyze.dlq
 ```
 
-Output:
+AI task nhận vào:
 
 ```json
 {
-  "label": "PHISHING",
-  "probability": 0.87,
-  "modelVersion": "url-model-v1",
-  "latencyMs": 42
+  "eventId": "evt_ai_req_1",
+  "taskId": "aitask_abc",
+  "scanId": "scan_123",
+  "kind": "URL_FEATURES",
+  "attempt": 1,
+  "payload": { "normalizedUrl": "https://example.com/login", "features": {} },
+  "requestedBy": "url-worker-v1",
+  "deadlineAt": "2026-09-19T00:00:20Z"
 }
+```
+
+`kind` thuộc `URL_FEATURES | TEXT_CONTENT | WEB_CONTENT`.
+
+AI result publish ra:
+
+```json
+{
+  "eventId": "evt_ai_res_1",
+  "taskId": "aitask_abc",
+  "scanId": "scan_123",
+  "status": "COMPLETED",
+  "prediction": {
+    "label": "PHISHING",
+    "probability": 0.87,
+    "modelVersion": "url-model-v1",
+    "latencyMs": 420
+  },
+  "failureReason": null,
+  "processorVersion": "ai-worker-v1",
+  "processedAt": "2026-09-19T00:00:00Z"
+}
+```
+
+Khi thất bại: `status = "FAILED"`, `prediction = null`, `failureReason` thuộc `TIMEOUT | MODEL_UNAVAILABLE | INVALID_PAYLOAD | INTERNAL_ERROR`.
+
+HTTP chỉ còn cho vận hành, **không** nằm trong luồng scan:
+
+```text
+GET /health
+GET /ready
+GET /internal/models     (metadata / diagnostics)
 ```
 
 ## 7. Backend / worker responsibilities
 
-Python service:
+Python worker:
 
 ```text
-validate request
-→ select model
+consume ai.analysis.requested
+→ validate task (scanId, taskId, kind, payload size)
+→ deduplicate by taskId
+→ select model theo kind
 → preprocess
-→ inference
+→ inference with timeout (+ retry nội bộ, không vượt deadlineAt)
 → postprocess
-→ return prediction metadata
+→ publish ai.analysis.completed | ai.analysis.failed
 ```
 
-Consumer worker chịu trách nhiệm biến prediction thành `AnalysisSignal` phù hợp.
+M12 nhận result, ghép theo `scanId` + `taskId`, đóng AI task trong barrier và biến prediction thành `AnalysisSignal` cho M09.
 
 ## 8. Input
 
 ```text
-model/profile
-normalized features/content
-request metadata
+AI task envelope
+├── scanId + taskId       (bắt buộc)
+├── kind                  (chọn model)
+├── payload               (normalized features / content)
+├── attempt
+└── deadlineAt
 ```
 
 ## 9. Output
 
 ```text
-label
-probability
-modelVersion
-latency
-optional confidence/metadata
+ai.analysis.completed
+├── scanId + taskId
+├── label
+├── probability
+├── modelVersion
+├── latencyMs
+└── optional confidence/metadata
+
+ai.analysis.failed
+├── scanId + taskId
+└── failureReason
 ```
 
 ## 10. Data ownership
@@ -2120,39 +2232,47 @@ optional confidence/metadata
 ## 11. Business rules / invariants
 
 - Python trả prediction, không `SAFE/CAUTION/DANGER` business verdict;
+- **mỗi task nhận được sinh đúng một result**, kể cả khi fail — im lặng là lỗi thiết kế, không phải degraded hợp lệ;
+- **mọi result mang `scanId` + `taskId`**; thiếu khóa này thì M12 không ghép được và kết quả vô dụng;
+- tổng thời gian xử lý một task, gồm retry nội bộ, phải nhỏ hơn `deadlineAt`;
+- idempotent theo `taskId`: task lặp do at-least-once không được chạy inference lần hai;
 - model version luôn traceable;
 - output contract deterministic về shape;
-- module không query user/business tables trực tiếp.
+- module không query user/business tables, không đọc PostgreSQL/Redis — mọi thứ cần dùng nằm trong payload.
 
 ## 12. Failure / degraded behavior
 
-- inference timeout initial = 2 s;
-- model unavailable → consumer tiếp tục không AI signal;
-- malformed input → controlled error;
-- health fail → circuit breaker ở consumer nếu cần.
+- model/LLM call timeout initial = 10 s (đã tính retry nội bộ) → publish `ai.analysis.failed` với `reason=TIMEOUT`;
+- model unavailable → `ai.analysis.failed` với `reason=MODEL_UNAVAILABLE`, M12 đóng task và finalize degraded ngay thay vì chờ hết deadline;
+- malformed payload → `ai.analysis.failed` với `reason=INVALID_PAYLOAD`, không retry;
+- task hết `deadlineAt` trước khi chạy → bỏ, trả `TIMEOUT`, không tốn inference;
+- quá retry → `q.ai.analyze.dlq`, phải có alert: mỗi message trong DLQ là một scan bị degraded vì AI;
+- AI Worker chết hẳn → mọi scan có AI finalize degraded sau `aiTaskDeadline`; hệ thống vẫn chấm điểm bằng rule + reputation.
 
 ## 13. Security / privacy
 
-- internal-only network access;
-- không log raw sensitive text quá mức cần thiết;
-- request size limit;
+- internal-only network access; chỉ nói chuyện với RabbitMQ, không mở inference endpoint public;
+- không log raw sensitive text quá mức cần thiết; không log raw CCCD / thông tin tài khoản;
+- payload size limit ở cả phía publish lẫn phía consume;
 - model artifact integrity/version control;
-- no public unauthenticated inference endpoint.
+- nếu dùng LLM bên thứ ba, phải nêu rõ dữ liệu nào rời hệ thống và có cơ chế tắt được bằng cấu hình.
 
 ## 14. Dependencies
 
-- M02 URL Scan;
-- M03 Text Analysis;
-- M09 Risk Policy;
-- M13 infrastructure/runtime.
+- M02 URL Scan — nguồn phát AI task;
+- M03 Text Analysis — nguồn phát AI task;
+- M12 Shared Scan Platform — nơi nhận result và đóng AI task;
+- M09 Risk Policy — nơi prediction thành điểm rủi ro;
+- M13 infrastructure/runtime (RabbitMQ).
 
 ## 15. Phát triển độc lập / mock contract
 
-Consumers dùng:
+M02/M03 dùng port publish, M12 dùng port nhận result:
 
 ```text
-AiInferencePort
-MockAiInferencePort
+AiTaskPublisherPort
+MockAiTaskPublisherPort      (ghi lại taskId đã publish, không gọi model)
+FakeAiWorker                 (đọc q.ai.analyze, trả fixture theo kind)
 ```
 
 Fixtures:
@@ -2161,14 +2281,23 @@ Fixtures:
 url-ai-phishing.json
 url-ai-safe.json
 text-ai-scam.json
-ai-timeout.json
+ai-failed-timeout.json
+ai-failed-model-unavailable.json
+ai-result-late.json          (về sau khi scan đã COMPLETED)
+ai-result-orphan.json        (taskId chưa được khai trong pendingAiTasks)
 ```
+
+M02/M03 có thể phát triển hoàn toàn với `MockAiTaskPublisherPort` và AI tắt; M12 test barrier bằng `FakeAiWorker`.
 
 ## 16. Definition of Done
 
-- URL/Text inference contract ổn định;
+- consume `q.ai.analyze` và publish `q.scan.result` ổn định theo contract;
+- mọi task đều sinh đúng một result, có test cho cả đường fail;
+- `scanId` + `taskId` có mặt trong mọi result;
+- idempotent theo `taskId`, có test message lặp;
 - modelVersion traceable;
-- timeout/fallback test;
+- timeout/DLQ/fallback test;
+- `prefetch_count` cấu hình được và có test giới hạn đồng thời;
 - không trả final business verdict;
 - consumers có mock adapter.
 
@@ -2263,11 +2392,22 @@ q.scan.url
 q.scan.text
 q.scan.entity
 q.scan.qr
-q.scan.result
+q.ai.analyze          (M02/M03 publish, M11 consume)
+q.scan.result         (worker result + AI result)
 q.report.export
 q.notification
 q.threat.ingest
 ```
+
+Routing keys liên quan tới AI:
+
+```text
+ai.analysis.requested
+ai.analysis.completed
+ai.analysis.failed
+```
+
+`q.scan.result` nhận **hai loại message**: `scan.*.analyzed` từ worker phân tích và `ai.analysis.completed/failed` từ M11. Consumer phân biệt bằng routing key và bằng sự có mặt của `taskId`.
 
 ## 7. Backend / worker responsibilities
 
@@ -2278,8 +2418,12 @@ Input Validation / Scan Type Resolver
 Processor Registry / Job Router
 Scan Orchestrator
 Worker Result Consumer
+AI Task Registry & Result Adapter
+Reputation Enricher        (pre-enrich + deferred enrichment qua M08)
 Signal Aggregator
 ```
+
+**Quy tắc cô lập worker:** M12 là ranh giới duy nhất giữa worker và dữ liệu. Không worker nào gọi ngược vào core; mọi dữ liệu uy tín worker cần đều do M12 nhét vào job, và mọi chỉ dấu worker phát hiện đều do M12 tra hộ.
 
 Core flow:
 
@@ -2290,20 +2434,38 @@ ValidatedScanCommand
 → consume result
 → deduplicate event
 → register derived indicators
-→ child jobs if needed
-→ completion barrier
+→ resolve REPUTATION_ONLY indicators (tra tại chỗ qua M08, gắn signal vào scan cha)
+→ register pendingAiTasks[]          (AI task worker vừa gửi)
+→ match parked AI results            (AI result về trước worker result)
+→ child jobs if needed          (kèm reputationContext đã enrich)
+→ completion barrier (child scans + AI tasks)
 → aggregate signals
 → call M09 Risk Evaluation
 → persist/cache final result
+```
+
+Đường AI result đi riêng:
+
+```text
+consume ai.analysis.completed | ai.analysis.failed
+→ validate (bắt buộc có scanId + taskId)
+→ deduplicate by eventId
+→ resolve AI task
+   ├── task đã biết      → đóng task, giữ prediction làm AnalysisSignal
+   ├── task chưa biết    → park theo scanId, chờ worker result khai pendingAiTasks
+   └── scan đã finalize  → ghi late signal vào metadata, KHÔNG sửa RiskResult đã trả
+→ completion barrier
+→ finalize if ready
 ```
 
 ## 8. Input
 
 ```text
 ValidatedScanCommand
-WorkerResult event
+WorkerResult event (kèm pendingAiTasks[])
+AiResult event (ai.analysis.completed | ai.analysis.failed)
 DerivedIndicator[]
-timeout/deadline event
+timeout/deadline event (parent deadline + aiTaskDeadline)
 ```
 
 ## 9. Output
@@ -2312,8 +2474,9 @@ timeout/deadline event
 scanId
 ScanStatus
 worker jobs
-UnifiedSignalSet
+UnifiedSignalSet (gồm cả AI signal đã ghép theo taskId)
 child scan tree
+AI task state (pending / completed / failed / expired)
 finalization trigger
 failure/degraded metadata
 ```
@@ -2323,6 +2486,7 @@ failure/degraded metadata
 ```text
 scan_requests
 scan_relations
+scan_ai_tasks          (scanId, taskId, kind, status, requestedAt)
 scan lifecycle status
 processed event/idempotency metadata nếu persist
 ```
@@ -2333,21 +2497,38 @@ Redis:
 idempotency key
 result cache
 nested-scan counters/barrier
+AI task counters (expectedAiTasks / completedAiTasks)
+parked AI results chờ ghép
 lightweight lock
 ```
 
 ## 11. Business rules / invariants
 
-Nested scan:
+Nested scan và AI task:
 
 ```text
-PostgreSQL scan_relations = source of truth
-Redis = temporary coordination
-parent deadline = 30 s
+PostgreSQL scan_relations  = source of truth cho parent-child
+PostgreSQL scan_ai_tasks   = source of truth cho AI task đang chờ
+Redis = temporary coordination, dựng lại được từ PostgreSQL
+
+parent deadline  = 30 s
+aiTaskDeadline   = 20 s          (luôn nhỏ hơn parent deadline)
 maxDepth = 2
 cycle detection = enabled
 partial completion => degraded=true
 ```
+
+Barrier đếm **cả hai loại việc đang chờ**:
+
+```text
+Finalize khi:
+1) completedChildren + failedChildren == expectedChildren
+   VÀ completedAiTasks == expectedAiTasks, hoặc
+2) aiTaskDeadline hết -> bỏ AI task còn treo, degraded=true, renormalize trọng số, hoặc
+3) parent deadline hết -> partial/degraded result
+```
+
+`expectedAiTasks` chỉ đến từ `pendingAiTasks[]` do worker khai. Worker không được khai một `taskId` mà nó chưa publish thành công.
 
 Messaging:
 
@@ -2363,9 +2544,14 @@ Scan không được treo `PROCESSING` vô hạn.
 ## 12. Failure / degraded behavior
 
 - child fail → parent vẫn có thể complete degraded;
+- AI task fail (`ai.analysis.failed`) → đóng task ngay và finalize sớm, không phải chờ hết deadline;
+- AI task hết `aiTaskDeadline` → bỏ task treo, `degraded=true`, renormalize trọng số, không coi AI = 0;
+- AI result về trước worker result → park theo `scanId` rồi ghép khi worker khai `pendingAiTasks[]`;
+- AI result về sau khi scan đã `COMPLETED` → ghi late signal, không sửa `RiskResult` đã trả;
 - deadline hết → finalize signals hiện có;
 - duplicate event → ACK/ignore, không double-count;
 - worker result malformed → reject/DLQ;
+- reputation lookup cho `derivedIndicators` lỗi → gắn `REPUTATION_UNAVAILABLE`, scan vẫn finalize degraded thay vì treo;
 - Redis mất → business relation vẫn phục hồi từ PostgreSQL;
 - RabbitMQ unavailable → API trả error/retry policy rõ ràng, không giả accepted nếu job chưa publish an toàn.
 
@@ -2380,6 +2566,7 @@ Scan không được treo `PROCESSING` vô hạn.
 ## 14. Dependencies
 
 - M09 Risk Evaluation;
+- M11 AI/ML — M12 là nơi nhận AI result và đóng AI task;
 - M13 PostgreSQL/Redis/RabbitMQ;
 - các feature worker M02–M05.
 
@@ -2392,8 +2579,10 @@ FakeMessageBus
 InMemoryScanRepository
 FakeClock
 MockRiskEvaluationPort
+FakeAiWorker
 worker-result fixtures
 nested-scan fixtures
+ai-task/ai-result fixtures (completed, failed, late, orphan)
 ```
 
 Các feature module có thể dev với fake scan platform adapter hoặc contract test.
@@ -2401,10 +2590,13 @@ Các feature module có thể dev với fake scan platform adapter hoặc contra
 ## 16. Definition of Done
 
 - consistent lifecycle cho 4 scan types;
-- idempotent consumer;
+- idempotent consumer theo `eventId`;
 - retry/DLQ;
 - nested scan depth/deadline/cycle tests;
-- no infinite PROCESSING;
+- **AI barrier tests:** AI về bình thường, AI fail, AI quá hạn, AI về trước worker result, AI về sau khi scan đã đóng;
+- **isolation test:** worker chạy được khi bị chặn mọi đường mạng trừ RabbitMQ;
+- `REPUTATION_ONLY` được tra tại chỗ, không sinh scan con thừa;
+- no infinite PROCESSING kể cả khi M11 chết hẳn;
 - contract test với feature modules.
 
 ---
@@ -2471,7 +2663,15 @@ Network contracts:
 
 ```text
 Public: 443 -> Nginx
-Internal: Spring Boot / Workers / AI / RabbitMQ / DB / Redis / MinIO
+Internal: Spring Boot / Workers / AI Worker / RabbitMQ / DB / Redis / MinIO
+
+Mọi worker (scan workers, AI Worker, export, ingestion) chỉ cần route tới
+RabbitMQ. Không worker nào kết nối PostgreSQL/Redis hay gọi API Spring Boot.
+Ngoại lệ duy nhất: URL Scanner Worker cần ra Internet công cộng để fetch
+nội dung, và đó chính là lý do SSRF protection là biên phòng thủ chính.
+
+Network policy phải kiểm chứng được quy tắc này; một worker xin mở thêm
+kết nối tới core hay database là dấu hiệu thiết kế đã lệch.
 ```
 
 Nginx forward tới approved upstreams; DB/Redis/RabbitMQ không public Internet.
@@ -2492,7 +2692,9 @@ Nginx forward tới approved upstreams; DB/Redis/RabbitMQ không public Internet
 - cache/coordination only.
 
 **RabbitMQ**
-- async job/result/event transport.
+- async job/result/event transport;
+- mang cả scan job, AI task và result event;
+- DLQ cho từng queue, riêng `q.ai.analyze.dlq` cần alert vì mỗi message là một scan bị degraded.
 
 **MinIO/S3**
 - evidence/export/binary artifact.
@@ -2597,7 +2799,7 @@ Docker Compose
 ├── MinIO
 ├── Spring Boot
 ├── workers
-├── Python AI
+├── Python AI worker
 ├── Next.js
 └── Nginx
 ```
@@ -2642,6 +2844,8 @@ PENDING -> PROCESSING -> COMPLETED
 COMPLETED + degraded=true
 ```
 
+`degraded=true` dùng cho mọi trường hợp finalize khi còn thiếu tín hiệu: child scan fail/timeout, AI task fail, hoặc AI task hết `aiTaskDeadline`. Thiếu AI **không** được tính là AI = 0; M09 renormalize trọng số trên các nhóm signal còn lại.
+
 ## AnalysisSignal
 
 ```json
@@ -2663,9 +2867,28 @@ COMPLETED + degraded=true
   "type": "URL",
   "normalizedValue": "https://example.com",
   "sourceScanId": "scan_parent",
-  "depth": 1
+  "depth": 1,
+  "handling": "CHILD_SCAN"
 }
 ```
+
+`type = URL | PHONE | BANK_ACCOUNT | TEXT | DOMAIN`
+
+`DOMAIN` chỉ sinh từ nội bộ (host mới trong chuỗi redirect), không phải `entityType` hợp lệ của `POST /v1/scans/entity`.
+
+`handling` nói chỉ dấu này cần gì — worker **gợi ý**, M12 quyết định cuối:
+
+```text
+REPUTATION_ONLY   M12 tra uy tín tại chỗ khi consume result,
+                  gắn signal vào scan cha, KHÔNG tạo scan con.
+
+CHILD_SCAN        M12 tra uy tín, tạo scan con kèm reputationContext,
+                  publish job như mọi scan con khác.
+```
+
+M12 được phép nâng `REPUTATION_ONLY` thành `CHILD_SCAN`, hoặc hạ `CHILD_SCAN` xuống `REPUTATION_ONLY` khi đã chạm `maxDepth`.
+
+**Worker không bao giờ tự tra uy tín cho chỉ dấu nó phát hiện.** Đây là hệ quả trực tiếp của quyết định cô lập worker.
 
 ## RiskResult
 
@@ -2686,6 +2909,8 @@ COMPLETED + degraded=true
 
 ## Async event envelope
 
+Worker result (`scan.*.analyzed`, vào `q.scan.result`):
+
 ```json
 {
   "eventId": "evt_123",
@@ -2697,11 +2922,75 @@ COMPLETED + degraded=true
   "status": "ANALYZED",
   "signals": [],
   "derivedIndicators": [],
-  "modelPrediction": null,
+  "pendingAiTasks": [],
   "processorVersion": "worker-v1",
   "processedAt": "..."
 }
 ```
+
+`pendingAiTasks[]` thay cho `modelPrediction` của bản trước. Worker không còn cầm prediction lúc trả result, nên nó khai những AI task vừa gửi đi để M12 biết phải chờ thêm:
+
+```json
+"pendingAiTasks": [
+  { "taskId": "aitask_abc", "kind": "URL_FEATURES" }
+]
+```
+
+Worker không dùng AI thì để mảng rỗng. Chỉ khai `taskId` **sau khi publish AI task thành công**.
+
+## AI task
+
+M02/M03 publish, routing key `ai.analysis.requested`, vào `q.ai.analyze`; M11 consume.
+
+```json
+{
+  "eventId": "evt_ai_req_1",
+  "taskId": "aitask_abc",
+  "scanId": "scan_123",
+  "parentScanId": null,
+  "kind": "URL_FEATURES",
+  "attempt": 1,
+  "payload": {},
+  "requestedBy": "url-worker-v1",
+  "requestedAt": "...",
+  "deadlineAt": "..."
+}
+```
+
+`kind = URL_FEATURES | TEXT_CONTENT | WEB_CONTENT`
+
+## AI result
+
+M11 publish, routing key `ai.analysis.completed` hoặc `ai.analysis.failed`, vào `q.scan.result`; M12 consume.
+
+```json
+{
+  "eventId": "evt_ai_res_1",
+  "taskId": "aitask_abc",
+  "scanId": "scan_123",
+  "status": "COMPLETED",
+  "prediction": {
+    "label": "PHISHING",
+    "probability": 0.87,
+    "modelVersion": "url-model-v1",
+    "latencyMs": 420
+  },
+  "failureReason": null,
+  "processorVersion": "ai-worker-v1",
+  "processedAt": "..."
+}
+```
+
+Khi thất bại: `status = "FAILED"`, `prediction = null`, `failureReason = TIMEOUT | MODEL_UNAVAILABLE | INVALID_PAYLOAD | INTERNAL_ERROR`.
+
+**Bốn quy tắc bắt buộc:**
+
+| Quy tắc | Lý do |
+| --- | --- |
+| `scanId` + `taskId` có ở **cả task lẫn result** | Khóa duy nhất để M12 ghép kết quả và đóng đúng barrier |
+| Mỗi task sinh **đúng một** result, kể cả khi fail | Không có result thì scan chỉ thoát treo nhờ deadline, làm chậm mọi scan có AI |
+| AI result **không** chứa `riskScore`, `riskLevel` hay verdict | Business verdict thuộc M09 |
+| Hai phía idempotent theo `eventId` và `taskId` | Delivery là at-least-once |
 
 ## Operational defaults của MVP
 
@@ -2709,8 +2998,10 @@ COMPLETED + degraded=true
 | --- | ---: |
 | Parent/nested scan deadline | 30 s |
 | Max nested depth | 2 |
-| Dynamic threat lookup timeout | 500 ms |
-| AI inference timeout | 2 s |
+| Reputation lookup timeout (trong lõi) | 500 ms |
+| AI task deadline (M12 chờ) | 20 s, luôn nhỏ hơn parent deadline |
+| AI model/LLM call timeout (trong M11) | 10 s, đã tính retry nội bộ |
+| AI Worker concurrency (`prefetch_count`) | 4 |
 | Worker retry | 2 retry sau attempt đầu |
 | URL redirect limit | 5 |
 | URL fetched body | 5 MB |

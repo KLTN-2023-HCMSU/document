@@ -52,7 +52,7 @@ $ cmp architecture_v1.md architecture_v2.md   →  không khác gì
 
 Repo đang có 2 file y hệt nhau mang 2 tên phiên bản khác nhau. Người chấm mở ra sẽ hỏi ngay. Xử lý: xoá một file, hoặc viết `architectures/CHANGELOG.md` nói rõ v1→v2→v3 đổi cái gì.
 
-#### 🔴 2. Worker gọi ngược vào Spring Boot để tra uy tín — mâu thuẫn với chính mục 7
+#### ✅ 2. Worker gọi ngược vào Spring Boot để tra uy tín — mâu thuẫn với chính mục 7 — ĐÃ CHỐT
 
 Sơ đồ mục 2.2 có:
 
@@ -69,7 +69,17 @@ Chọn một trong ba, rồi ghi rõ:
 - **(b)** Tách một internal endpoint `threat-lookup` riêng hẳn khỏi API công khai, có timeout ngắn + circuit breaker. Worker treo thì trả tín hiệu `REPUTATION_UNAVAILABLE` chứ không chờ.
 - **(c)** Backend tra sẵn uy tín rồi **nhét luôn vào message job** — worker không gọi ngược gì cả. Sạch nhất về mặt phụ thuộc, nhưng message to hơn và dữ liệu có thể cũ vài giây.
 
-Gợi ý cho MVP: **(c) cho lượt tra biết trước, (b) cho lượt tra phát sinh giữa chừng.**
+Gợi ý cho MVP lúc viết review: **(c) cho lượt tra biết trước, (b) cho lượt tra phát sinh giữa chừng.**
+
+> **Quyết định của nhóm:** chọn **(c) cho cả hai trường hợp** — cô lập worker hoàn toàn, **không** dùng (b).
+>
+> Lượt tra phát sinh giữa chừng được giải bằng cách khác thay vì mở endpoint cho worker: worker trả chỉ dấu mới về trong `derivedIndicators[]` kèm trường `handling`, rồi lõi tra hộ khi consume result event. Với `handling=REPUTATION_ONLY` lõi tra ngay tại chỗ và gắn signal vào scan cha, không tạo scan con và không tốn thêm vòng hàng đợi — nên chi phí gần bằng phương án (b) mà không phải mở đường đồng bộ nào.
+>
+> Phương án (a) bị loại vì biến Redis thành phụ thuộc cứng của worker, đi ngược đúng cái mục 7 yêu cầu.
+>
+> Đánh đổi đã chấp nhận: worker không biết uy tín của host mới **trong lúc** đang chạy nên không rẽ nhánh giữa chừng được. Chấp nhận được vì an toàn khi fetch do SSRF protection bảo đảm, còn reputation chỉ là một nhóm signal được chấm ở lõi.
+>
+> Đặc tả: `architecture_v3.1.md` mục 4.6.1 (revision V3.2). Sơ đồ `02-tong-the-v2` và `05-du-lieu-lua-dao` đã vẽ lại, không còn mũi tên đồng bộ từ worker về lõi.
 
 #### 🟠 3. Số lượng scan type và endpoint đang phình gấp đôi mức cần thiết
 
@@ -148,7 +158,7 @@ Nginx "giới hạn request cơ bản" + Redis rate limit trong backend. Không 
 ## Phần C — Việc nên làm, theo thứ tự
 
 1. Xử lý trùng lặp `v1` / `v2` (5 phút).
-2. Chốt hướng worker tra uy tín — B2.2 (quyết định kiến trúc, cần cả nhóm thống nhất).
+2. ~~Chốt hướng worker tra uy tín — B2.2~~ ✅ **đã chốt: cô lập worker, phương án (c)**; xem `architecture_v3.1.md` mục 4.6.1.
 3. Gộp scan type, cắt còn 4 endpoint — B2.3.
 4. Viết mục "Xử lý scan con và điều kiện hoàn tất" — B2.4.
 5. Viết bảng trọng số + ngưỡng cho Risk Fusion — B2.5.

@@ -1,7 +1,24 @@
 # Kiến trúc và công nghệ
 
-> **Architecture revision:** V3.1 — Feedback Hardening  
+> **Architecture revision:** V3.2 — Async AI Alignment  
 > **Nguyên tắc:** giữ nguyên cấu trúc V3; chỉ sửa các điểm cần thiết về dependency, scan API, nested scan, Risk Fusion, RabbitMQ và operational defaults.
+
+**Nguồn sự thật về kiến trúc:** bộ sơ đồ trong [`diagrams/`](diagrams/README.md) là bản nhóm đã chốt để trình bày. Tài liệu này là bản chi tiết cho người triển khai và **phải khớp với sơ đồ**; các sơ đồ Mermaid bên dưới chỉ mở rộng chi tiết, không mô tả một kiến trúc khác.
+
+### Thay đổi của V3.2 so với V3.1
+
+Đồng bộ tài liệu theo sơ đồ [`02-tong-the-v2.svg`](diagrams/02-tong-the-v2.svg) và các điểm còn treo trong [`02-tong-the-v2-check.md`](diagrams/02-tong-the-v2-check.md).
+
+| # | Thay đổi | Mục bị ảnh hưởng |
+| --- | --- | --- |
+| 1 | **AI/ML chuyển từ đồng bộ sang bất đồng bộ.** Web/Text Worker không còn gọi REST/gRPC sang Python service rồi chờ. Worker publish một **AI task** vào `q.ai.analyze`; **Python AI/ML Worker** xử lý và publish kết quả vào `q.scan.result`; Spring Boot consume rồi ghép theo `scanId` + `taskId` | 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 3.6, 4.1, 4.2, 4.3, 4.11 |
+| 2 | **Scan Orchestrator sở hữu việc chờ AI.** Completion barrier đếm cả child scan lẫn AI task đang chờ; không đóng scan chỉ vì Web/Text Worker đã xong | 4.7, 4.7.1 |
+| 3 | **Thêm topology cho AI:** queue `q.ai.analyze` + `q.ai.analyze.dlq`, routing key `ai.analysis.requested` / `ai.analysis.completed` / `ai.analysis.failed` | 5.0, 5.1, 5.2 |
+| 4 | **Contract mở rộng:** worker result mang `pendingAiTasks[]`; AI task và AI result có envelope riêng mang `taskId` | 5.3, 5.4 |
+| 5 | **Tách đôi operational default của AI:** timeout gọi model nằm trong AI Worker, khác deadline Orchestrator chờ AI task | 7.1 |
+| 6 | **Cô lập worker — bỏ hoàn toàn đường gọi đồng bộ ngược từ worker về core.** Worker chỉ nói chuyện với RabbitMQ. Chỉ dấu phát hiện giữa chừng được trả về trong `derivedIndicators[]`; lõi tra uy tín rồi gắn signal hoặc tạo scan con. Đây là quyết định của nhóm, chốt lại điểm treo B2.2 trong `architecture_v3_review.md` | 2.2, 3.1, 3.3, 4.1, 4.2, 4.6.1, 4.7, 5.3, 7 |
+
+Các phần còn lại của V3.1 giữ nguyên.
 
 ### Thuật ngữ dùng thống nhất
 
@@ -12,6 +29,9 @@
 | **Risk Fusion / tổng hợp rủi ro** | Kết hợp các nhóm signal và rule contribution để tạo `riskScore`/`riskLevel` |
 | **Threat Intelligence / dữ liệu uy tín** | Dữ liệu blacklist/whitelist/reputation/threat reference có nguồn và độ tin cậy |
 | **Nested scan / scan con** | Scan được tạo từ indicator phát sinh trong một scan cha |
+| **AI task** | Một đơn vị việc AI do Web/Text Worker gửi vào `q.ai.analyze`, định danh bằng `taskId` và gắn với một `scanId` |
+| **Completion barrier** | Điều kiện để Orchestrator đóng một scan: mọi child scan và mọi AI task đang chờ đều đã xong, hoặc đã hết deadline |
+| **Degraded result** | `RiskResult` được finalize khi còn thiếu tín hiệu (child fail, AI fail hoặc AI quá hạn); đánh dấu `degraded=true` |
 
 ## 1. Input, output và coverage contract của hệ thống
 
@@ -22,7 +42,7 @@
 | **Input** | - URL/link đáng nghi<br />- Nội dung tin nhắn, đoạn hội thoại<br />- Bài đăng giao dịch / nội dung rao bán, tuyển dụng, hoàn tiền, giao hàng... (`TEXT` + `contentType`)<br />- Số điện thoại<br />- Số tài khoản ngân hàng / mã ngân hàng nếu có<br />- QR code / VietQR<br />- Báo cáo lừa đảo do cộng đồng gửi lên<br />- **HTML/Form** được phân tích như bước nội bộ của URL scan; không bắt buộc là public input<br />- **CCCD** trong MVP được phát hiện như tín hiệu yêu cầu/thu thập dữ liệu nhạy cảm trong Text/Web; standalone CCCD lookup chuyển sang Future Scope |
 | **Output** | - Điểm rủi ro: `0 - 100`<br />- Mức cảnh báo: `SAFE`, `CAUTION`, `DANGER`<br />- Bằng chứng theo rule / signal<br />- Giải thích lý do<br />- Khuyến nghị hành động<br />- Trạng thái xử lý: `PENDING`, `PROCESSING`, `COMPLETED`, `FAILED`<br />- Lịch sử scan của user<br />- Audit / operational log cho admin và vận hành |
 
-Kiến trúc được lựa chọn là **Modular Monolith + Event-Driven Workers**. Spring Boot giữ vai trò business core và owner của final result; các tác vụ phân tích chuyên biệt hoặc tốn thời gian được tách thành worker chạy bất đồng bộ qua RabbitMQ. AI/ML được triển khai qua **Python AI/ML Service** riêng.
+Kiến trúc được lựa chọn là **Modular Monolith + Event-Driven Workers**. Spring Boot giữ vai trò business core và owner của final result; các tác vụ phân tích chuyên biệt hoặc tốn thời gian được tách thành worker chạy bất đồng bộ qua RabbitMQ. AI/ML được triển khai qua **Python AI/ML Worker** riêng: worker này cũng nhận việc và trả tín hiệu **qua RabbitMQ**, không phải qua lời gọi đồng bộ từ worker phân tích.
 
 Trong MVP, hệ thống vẫn có thể chạy bằng **rule-based + heuristic + reputation/community signal**. AI là tín hiệu bổ sung và không phải nguồn duy nhất quyết định verdict.
 
@@ -32,12 +52,12 @@ Bảng này là **contract kiến trúc**. Nếu thêm một `InputType` mới, 
 
 | Input | `ScanType` / `EntityType` | Processor owner | Core functions bắt buộc | Downstream |
 | --- | --- | --- | --- | --- |
-| **URL/link** | `URL` | **Web/URL Scanner Worker** | `normalizeUrl`, `validateUrl`, lexical analysis, DNS/domain lookup, redirect analysis, TLS/HTTPS analysis, typosquatting, reputation lookup, safe public fetch, SSRF protection | Rule Engine, optional URL ML, Risk Fusion |
-| **HTML / Form công khai (internal/derived)** | `URL:WEB_CONTENT` internal mode | **Web/URL Scanner Worker - HTML/Form Analyzer submodule** | parse HTML, extract form/input/action, detect credential/OTP/PIN/CVV/CCCD collection cues, cross-domain form action, suspicious keywords | Rule Engine, optional Web/Text ML, Risk Fusion |
-| **Tin nhắn / hội thoại** | `TEXT` | **Text Analyzer Worker** | normalize text, entity extraction, scam cue/pattern detection, scenario classification, nested indicator extraction | Rule Engine, optional Text ML, nested URL/Entity scan, Risk Fusion |
-| **Bài đăng giao dịch** | `TEXT` + `contentType=TRANSACTION_POST` | **Text Analyzer Worker** | text preprocessing, amount/contact/account/link extraction, scam scenario rules, urgency/payment cues | Rule Engine, optional Text ML, nested URL/Entity scan, Risk Fusion |
-| **Số điện thoại** | `ENTITY:PHONE` | **Entity/Reputation Checker Worker** | `normalizePhone`, protected lookup key, threat/community lookup, report count, verified report count, source confidence, time-decay | Reputation Signal, Rule Engine, Risk Fusion |
-| **Tài khoản ngân hàng** | `ENTITY:BANK_ACCOUNT` | **Entity/Reputation Checker Worker** | normalize account/bank code, protected lookup key, threat/community lookup, report stats, source confidence, time-decay | Reputation Signal, Rule Engine, Risk Fusion |
+| **URL/link** | `URL` | **Web/URL Scanner Worker** | `normalizeUrl`, `validateUrl`, lexical analysis, DNS/domain lookup, redirect analysis, TLS/HTTPS analysis, typosquatting, dùng `reputationContext` kèm job, gom host mới thành `derivedIndicators`, safe public fetch, SSRF protection | Rule Engine, optional AI task (bất đồng bộ), Risk Fusion |
+| **HTML / Form công khai (internal/derived)** | `URL:WEB_CONTENT` internal mode | **Web/URL Scanner Worker - HTML/Form Analyzer submodule** | parse HTML, extract form/input/action, detect credential/OTP/PIN/CVV/CCCD collection cues, cross-domain form action, suspicious keywords | Rule Engine, optional AI task (bất đồng bộ), Risk Fusion |
+| **Tin nhắn / hội thoại** | `TEXT` | **Text Analyzer Worker** | normalize text, entity extraction, scam cue/pattern detection, scenario classification, nested indicator extraction | Rule Engine, optional AI task (bất đồng bộ), nested URL/Entity scan, Risk Fusion |
+| **Bài đăng giao dịch** | `TEXT` + `contentType=TRANSACTION_POST` | **Text Analyzer Worker** | text preprocessing, amount/contact/account/link extraction, scam scenario rules, urgency/payment cues | Rule Engine, optional AI task (bất đồng bộ), nested URL/Entity scan, Risk Fusion |
+| **Số điện thoại** | `ENTITY:PHONE` | **Entity/Reputation Checker Worker** | `normalizePhone`, protected lookup key, dùng `reputationContext` kèm job, report count, verified report count, source confidence, time-decay | Reputation Signal, Rule Engine, Risk Fusion |
+| **Tài khoản ngân hàng** | `ENTITY:BANK_ACCOUNT` | **Entity/Reputation Checker Worker** | normalize account/bank code, protected lookup key, dùng `reputationContext` kèm job, report stats, source confidence, time-decay | Reputation Signal, Rule Engine, Risk Fusion |
 | **Yêu cầu/thu thập CCCD trong nội dung** | derived signal, không phải standalone `ENTITY` trong MVP | **Text Analyzer Worker / HTML-Form Analyzer** | detect sensitive identity request, mask/redact value, không log/persist raw CCCD | Rule Engine, Risk Fusion |
 | **QR / VietQR** | `QR` | **QR Parser Worker** | decode/validate, classify QR type, parse VietQR, extract URL/text/bank account/amount/content, return derived indicators | Scan Orchestrator dispatches nested URL/Text/Entity jobs |
 | **Community Report** | `REPORT` | **Community Report Module** | validate report, evidence upload, moderation workflow, reporter/reputation metadata, verified report conversion to risk signal/entity | Threat/Reputation data, Risk Fusion, Admin Review |
@@ -122,7 +142,6 @@ flowchart TB
 
     subgraph ApplicationLayer[Application Layer]
         Backend[Spring Boot Modular Monolith\nREST API + Business Core]
-        AI[Python AI/ML Service\nPreprocessing + Model Inference]
     end
 
     subgraph MessagingLayer[Messaging Layer]
@@ -135,6 +154,7 @@ flowchart TB
         EntityWorker[Entity / Reputation Checker Worker\nPhone + Bank Account]
         QrWorker[QR Parser Worker]
         ExportWorker[PDF / HTML Export Worker]
+        AIWorker[Python AI/ML Worker\nPreprocessing + Model/LLM Inference]
     end
 
     subgraph ThreatPipeline[Threat Intelligence Pipeline]
@@ -163,6 +183,7 @@ flowchart TB
     MQ --> EntityWorker
     MQ --> QrWorker
     MQ --> ExportWorker
+    MQ -->|ai.analysis.requested| AIWorker
 
     WebWorker -->|Technical + web-content signals| MQ
     TextWorker -->|Text + extracted indicator signals| MQ
@@ -170,12 +191,9 @@ flowchart TB
     QrWorker -->|Parsed QR + derived indicators| MQ
     ExportWorker -->|Generated report| Storage
 
-    WebWorker -->|ML inference khi enabled| AI
-    TextWorker -->|ML inference khi enabled| AI
-    AI -->|Probability / label / model metadata| WebWorker
-    AI -->|Probability / label / model metadata| TextWorker
-
-    WebWorker -.->|Dynamic threat lookup only<br/>timeout + circuit breaker| Backend
+    WebWorker -->|AI task khi enabled<br/>ai.analysis.requested| MQ
+    TextWorker -->|AI task khi enabled<br/>ai.analysis.requested| MQ
+    AIWorker -->|Probability / label / modelVersion<br/>ai.analysis.completed| MQ
 
     ThreatFeeds --> IngestionWorker
     IngestionWorker -->|Normalize / validate / deduplicate / upsert| PG
@@ -186,12 +204,13 @@ flowchart TB
 
 - **Nginx** là edge gateway: TLS termination, reverse proxy, routing và coarse rate limit/flood protection theo IP. Nginx không điều phối detection workflow.
 - **Spring Boot Modular Monolith** là business core: auth, validation, input routing, scan orchestration, threat/reputation query, rule engine, signal aggregation, risk fusion, result composition, history, report, admin, notification và persistence ownership.
-- **RabbitMQ** phân phối job bất đồng bộ và worker result.
+- **RabbitMQ** phân phối job phân tích, **AI task** và mọi result event, gồm cả worker result lẫn AI result.
 - **Web/URL Scanner Worker** xử lý cả URL và web content. `HTML/Form Analyzer` là submodule của worker này, tránh việc input HTML có trong requirement nhưng không có processor.
 - **Text Analyzer Worker** xử lý cả message/conversation và transaction post.
 - **Entity/Reputation Checker Worker** xử lý `PHONE` và `BANK_ACCOUNT` qua strategy theo `EntityType`; standalone CCCD lookup không nằm trong MVP.
 - **QR Parser Worker** chỉ parse/derive indicator. `Scan Orchestrator` mới là thành phần dispatch các nested scan sang URL/Text/Entity processor.
-- **Python AI/ML Service** trả prediction; Spring Boot tạo business verdict.
+- **Python AI/ML Worker** là một consumer RabbitMQ như các worker khác, **không phải service được gọi đồng bộ**. Web/Text Worker publish AI task rồi kết thúc job của mình ngay; AI Worker trả prediction vào queue result và Spring Boot mới tạo business verdict. Nhờ vậy độ trễ của model/LLM không giữ chỗ một Web/Text Worker thread.
+- **Worker bị cô lập.** Không có mũi tên nào đi từ Worker Layer ngược về Spring Boot. Worker chỉ nói chuyện với RabbitMQ, không gọi API của core, không đọc PostgreSQL/Redis. Mọi dữ liệu uy tín worker cần đều đã nằm sẵn trong job; chỉ dấu phát hiện giữa chừng thì trả về qua `derivedIndicators[]` để lõi tra. Xem mục 4.6.1.
 - **PostgreSQL** là source of truth. **Redis** là cache/coordination state, không phải nơi lưu threat data duy nhất.
 
 #### 2.2.1. Client feature parity
@@ -253,7 +272,7 @@ flowchart TB
 
         Publisher[Job / Event Publisher]
         ResultConsumer[Worker Result Consumer]
-        AIAdapter[AI Result Adapter / AI Client Boundary]
+        AIAdapter[AI Task Registry & Result Adapter]
         Repo[Repository Layer]
         Cache[Cache / Rate Limit / Idempotency Adapter]
     end
@@ -261,7 +280,6 @@ flowchart TB
     MQ[(RabbitMQ)]
     PG[(PostgreSQL)]
     Redis[(Redis)]
-    AI[Python AI/ML Service]
 
     Client --> Controllers
     Controllers --> Validation
@@ -276,14 +294,15 @@ flowchart TB
     Registry --> Publisher
     Publisher --> MQ
 
-    MQ --> ResultConsumer
+    MQ -->|scan.*.analyzed| ResultConsumer
+    MQ -->|ai.analysis.completed / failed| ResultConsumer
     ResultConsumer --> Aggregator
+    ResultConsumer -->|AI result theo taskId| AIAdapter
     Aggregator --> Scan
     Aggregator --> Rule
-    Aggregator --> AIAdapter
 
-    AIAdapter -->|Internal REST/gRPC nếu Spring Boot gọi trực tiếp| AI
-    AI -->|probability, label, modelVersion| AIAdapter
+    AIAdapter -->|Đăng ký / đóng AI task đang chờ| Scan
+    AIAdapter -->|prediction -> AnalysisSignal| Aggregator
 
     Scan --> Rule
     Rule --> Fusion
@@ -323,30 +342,32 @@ flowchart TB
 10. `Scan Query & History` phục vụ status/history mà không chạy lại scan.
 11. `Audit & Observability` ghi administrative/audit/worker failure/retry metadata.
 
-### 2.4. Component view cho Python AI/ML Service
+### 2.4. Component view cho Python AI/ML Worker
 
-Python AI/ML Service được tách để tận dụng ecosystem Python nhưng vẫn giữ business decision ở Java.
+Python được tách riêng để tận dụng ecosystem ML/LLM nhưng vẫn giữ business decision ở Java. Từ V3.2, thành phần này là **worker tiêu thụ hàng đợi**, không còn là service nhận REST đồng bộ trong luồng scan.
 
 ```mermaid
 flowchart LR
-    Caller[Web/Text Worker hoặc Spring Boot AI Client]
+    MQIn[(RabbitMQ\nq.ai.analyze)]
 
-    subgraph PythonAI[Python AI/ML Service]
-        API[Inference API - FastAPI đề xuất]
-        Validation[Input Validation]
+    subgraph PythonAI[Python AI/ML Worker]
+        Consumer[AMQP Consumer\nprefetch = giới hạn đồng thời]
+        Validation[Task Validation\nscanId + taskId + payload]
         ModelRouter[Model Router]
         UrlPre[URL Feature Preprocessing]
         TextPre[Text / NLP Preprocessing]
         WebPre[Web Content Preprocessing - optional]
         Registry[Model Loader / Version Registry]
-        Inference[Model Inference]
+        Inference[Model / LLM Inference\ntimeout + retry nội bộ]
         Postprocess[Probability / Label / Metadata]
+        Publisher[Result Publisher]
     end
 
     Models[(Model Artifacts)]
+    MQOut[(RabbitMQ\nq.scan.result)]
 
-    Caller -->|REST/JSON hoặc gRPC| API
-    API --> Validation
+    MQIn -->|ai.analysis.requested| Consumer
+    Consumer --> Validation
     Validation --> ModelRouter
     ModelRouter --> UrlPre
     ModelRouter --> TextPre
@@ -357,25 +378,27 @@ flowchart LR
     Registry --> Inference
     Models --> Registry
     Inference --> Postprocess
-    Postprocess -->|probability, label, modelVersion, latency| Caller
+    Postprocess --> Publisher
+    Publisher -->|ai.analysis.completed / failed<br/>kèm scanId + taskId| MQOut
 ```
 
-**Nguyên tắc:** Python trả **prediction**, Java trả **business verdict**.
+**Ba nguyên tắc của thành phần này:**
 
-Ví dụ inference contract:
+1. **Python trả prediction, Java trả business verdict.** AI Worker không bao giờ phát ra `SAFE`/`CAUTION`/`DANGER`.
+2. **Mọi kết quả phải mang `scanId` + `taskId`.** Đây là khóa để Orchestrator ghép kết quả về đúng scan và đóng đúng barrier; thiếu khóa này thì kết quả không dùng được.
+3. **Thất bại vẫn phải trả lời.** Timeout, model lỗi hay payload hỏng đều publish `ai.analysis.failed`, không im lặng. Nếu im lặng thì Orchestrator chỉ còn cách chờ hết deadline rồi finalize degraded, tức là mọi scan có AI đều chậm đi khi AI hỏng.
 
-```json
-{
-  "prediction": {
-    "label": "PHISHING",
-    "probability": 0.87,
-    "modelVersion": "url-model-v1",
-    "latencyMs": 42
-  }
-}
+Worker tự quản lý **giới hạn đồng thời** qua `prefetch_count` và **timeout gọi model/LLM**. Đây là điểm mấu chốt của V3.2: việc chờ model nằm bên trong AI Worker, không chiếm thread của Web/Text Worker và không chiếm HTTP thread của Spring Boot.
+
+Endpoint HTTP của Python chỉ còn phục vụ vận hành, không nằm trong luồng scan:
+
+```text
+GET /health
+GET /ready
+GET /internal/models        (metadata / diagnostics)
 ```
 
-Prediction là một `AnalysisSignal`, sau đó được Risk Fusion kết hợp với rule, reputation, community và technical findings.
+Prediction sau khi về core được chuyển thành một `AnalysisSignal`, rồi Risk Fusion kết hợp nó với rule, reputation, community và technical findings.
 
 ---
 
@@ -428,7 +451,7 @@ flowchart TB
     end
 
     subgraph AIService[Python AI Layer]
-        AI[Python AI/ML Inference Service]
+        AI[Python AI/ML Worker\nConsume q.ai.analyze]
     end
 
     subgraph ThreatPipeline[Threat Intelligence Pipeline]
@@ -466,15 +489,17 @@ flowchart TB
     Broker --> QrWorker
     Broker --> ExportWorker
 
-    WebWorker -->|optional ML| AI
-    TextWorker -->|optional ML| AI
+    WebWorker -->|optional AI task| Broker
+    TextWorker -->|optional AI task| Broker
+    Broker -->|ai.analysis.requested| AI
+    AI -->|ai.analysis.completed + taskId| Broker
 
     WebWorker -->|analysis signals| Broker
     TextWorker -->|analysis + derived indicators| Broker
     EntityWorker -->|reputation signals| Broker
     QrWorker -->|parsed QR + derived indicators| Broker
 
-    Broker -->|analysis completed events| Aggregator
+    Broker -->|analysis + AI result events| Aggregator
     Aggregator --> Orchestrator
 
     Orchestrator -->|Nested indicators -> child jobs| Router
@@ -488,8 +513,8 @@ flowchart TB
     Composer -->|Final RiskResult| PG
     Composer -->|Recent result cache| Redis
 
-    Orchestrator -->|Pre-enrich known reputation context| ThreatQuery
-    WebWorker -.->|Dynamic threat lookup only<br/>short timeout + circuit breaker| ThreatQuery
+    Orchestrator -->|Pre-enrich trước khi giao việc| ThreatQuery
+    Aggregator -->|Tra uy tín cho chỉ dấu mới trả về| ThreatQuery
     ThreatQuery --> Redis
     ThreatQuery --> PG
 
@@ -517,7 +542,7 @@ flowchart TB
 
     Aggregate[Signal Aggregator]
     Rule[Rule Engine]
-    AI[AI Signal - optional]
+    AI[AI/ML Worker - optional, bất đồng bộ]
     Fusion[Risk Fusion]
     Compose[Result Composer]
     Output[RiskResult]
@@ -534,9 +559,9 @@ flowchart TB
     EntityWorker --> Aggregate
     QRWorker -->|derived URL/Text/Entity| Orchestrator
 
-    WebWorker --> AI
-    TextWorker --> AI
-    AI --> Aggregate
+    WebWorker -.->|AI task qua RabbitMQ| AI
+    TextWorker -.->|AI task qua RabbitMQ| AI
+    AI -->|prediction signal theo taskId| Aggregate
 
     Aggregate --> Rule
     Aggregate --> Fusion
@@ -559,7 +584,7 @@ sequenceDiagram
     participant Q as RabbitMQ
     participant W as Web/URL Scanner Worker
     participant T as Threat/Reputation Query
-    participant M as Python AI Service
+    participant M as Python AI/ML Worker
     participant F as Rule Engine + Risk Fusion
 
     C->>N: POST /v1/scans/url
@@ -580,20 +605,32 @@ sequenceDiagram
         W->>W: Normalize + URL/DNS/TLS/redirect analysis
         W->>W: Use pre-enriched reputationContext
 
-        opt Newly discovered redirect/domain needs reputation immediately
-            W->>T: Internal threat lookup (short timeout + circuit breaker)
-            T-->>W: reputation signal or REPUTATION_UNAVAILABLE
-        end
+        Note over W: Worker KHÔNG gọi ngược lõi.<br/>Host mới trong chuỗi redirect được gom<br/>vào derivedIndicators để lõi tra sau.
 
         W->>W: Safe fetch + HTML/Form analysis
 
-        opt URL/Web ML enabled
-            W->>M: Send normalized features/content
-            M-->>W: probability + label + modelVersion (fallback: continue without AI signal)
+        opt URL/Web AI enabled
+            W->>Q: Publish ai.analysis.requested(scanId, taskId, features)
         end
 
-        W->>Q: Publish scan.url.analyzed(signals)
+        W->>Q: Publish scan.url.analyzed(signals, derivedIndicators, pendingAiTasks)
         Q->>A: Consume analysis result
+
+        opt Có derivedIndicator cần uy tín
+            A->>T: Lookup REPUTATION_ONLY (Redis -> PostgreSQL)
+            T-->>A: reputation signal / NO_DATA
+        end
+
+        A->>A: Đăng ký AI task đang chờ vào completion barrier
+
+        opt Có AI task đang chờ
+            Q->>M: Consume ai.analysis.requested
+            M->>M: Preprocess + inference (timeout/retry nội bộ)
+            M->>Q: Publish ai.analysis.completed(scanId, taskId, prediction)
+            Q->>A: Consume AI result và đóng AI task
+        end
+
+        A->>A: Barrier đủ hoặc hết deadline -> finalize (degraded nếu thiếu AI)
         A->>F: Aggregated signals
         F-->>A: riskScore + riskLevel + evidences
         A->>A: Compose explanation + recommendation
@@ -680,7 +717,7 @@ flowchart LR
     Content[Content Signals\nText / Transaction Post]
     Reputation[Reputation Signals\nThreat Intel / Verified Community]
     Rules[Rule / Heuristic Evidence]
-    AI[AI Probability\nOptional]
+    AI[AI Probability\nOptional - về bất đồng bộ]
 
     Technical --> Fusion[Risk Fusion]
     Content --> Fusion
@@ -697,6 +734,12 @@ flowchart LR
 ```
 
 AI không thay thế Rule Engine. AI là một signal bổ sung; hệ thống vẫn hoạt động khi AI unavailable bằng rule/heuristic/reputation.
+
+Từ V3.2, AI signal **về muộn hơn các signal khác** vì đi qua hàng đợi riêng. Điều đó không đổi vai trò của nó trong Risk Fusion, nhưng đổi cách Orchestrator kết thúc scan:
+
+- AI task đang chờ được tính vào completion barrier giống child scan, xem mục 4.7.1;
+- hết `aiTaskDeadline` mà chưa có kết quả thì finalize với `degraded=true` và renormalize trọng số, **không** coi AI = 0, xem mục 4.8;
+- AI result về sau khi scan đã đóng được ghi nhận như late signal để phân tích và hiệu chỉnh policy, không sửa `RiskResult` đã trả cho người dùng.
 
 ---
 
@@ -718,7 +761,7 @@ AI không thay thế Rule Engine. AI là một signal bổ sung; hệ thống v�
 | **Processor Registry / Job Router** | Map scan type sang routing key/worker | `ScanType`, `EntityType` | RabbitMQ job |
 | **Worker Result Consumer** | Consume result event, validate result contract | Worker event | AnalysisSignal/DerivedIndicator cho Aggregator |
 | **Signal Aggregator** | Gom signal parent/child, deduplicate, source confidence, completeness | Worker/AI/community signals | Unified signal set |
-| **Threat Intelligence & Reputation Query** | Cache-aside lookup threat/risk entity/source/report. Bình thường Spring Boot pre-enrich known indicators trước khi publish job; worker chỉ gọi internal endpoint cho indicator phát sinh giữa chừng, với timeout ngắn + circuit breaker | Entity/domain/url lookup | Reputation/threat signal / `REPUTATION_UNAVAILABLE` |
+| **Threat Intelligence & Reputation Query** | Cache-aside lookup threat/risk entity/source/report. **Chỉ module này chạm vào dữ liệu uy tín.** Chạy ở hai thời điểm: pre-enrich trước khi publish job, và tra cho `derivedIndicators` khi consume worker result. Không expose endpoint nào cho worker | Entity/domain/url lookup | Reputation/threat signal / `NO_DATA` / `REPUTATION_UNAVAILABLE` |
 | **Rule Engine** | Evaluate rule/heuristic, priority, weight, hard rule; tạo evidence | Unified signals | RuleMatch[], rule contribution |
 | **Risk Fusion** | Kết hợp các signal theo policy/version | Signals + RuleMatch | score, level, fusion metadata |
 | **Result Composer / Explainability** | Tạo explanation/recommendation/response contract thống nhất | Fusion + Evidence | Final `RiskResult` |
@@ -727,14 +770,14 @@ AI không thay thế Rule Engine. AI là một signal bổ sung; hệ thống v�
 | **Admin Management Module** | Rule/risk entity/source/report/dashboard/admin action | Admin command | Config/data updates |
 | **Notification Module** | Email/push/in-app status notification async | Domain event | Notification status |
 | **Audit & Observability Module** | Audit admin actions, failures/retries, correlation IDs, operational metadata | Domain/infra event | Audit record/log/metric |
-| **RabbitMQ** | Async jobs, result events, retry/DLQ | Message | Worker/backend delivery |
+| **RabbitMQ** | Async scan jobs, **AI task**, result events (worker + AI), retry/DLQ | Message | Worker/backend delivery |
 | **Web/URL Scanner Worker** | URL + public web content analysis, HTML/Form analyzer, SSRF-safe fetch | URL or HTML/Form job | Technical/content signals + optional AI signal |
 | **Text Analyzer Worker** | Message/conversation/transaction post analysis + indicator extraction | Text job | Text signals + derived indicators + optional AI signal |
 | **Entity/Reputation Checker Worker** | Phone/bank strategy, validation/normalization, xử lý reputation context và association/time-decay signals | Entity job | Entity/reputation signals |
 | **QR Parser Worker** | Decode/parse/classify QR and return derived indicators | QR job | URL/Text/Bank/amount/content indicators |
 | **Report Export Worker** | PDF/HTML export async | Export job | Object in MinIO/S3 |
 | **Threat Data Ingestion Worker** | Import/sync threat data, normalize, validate, deduplicate, source/version metadata, cache refresh | Feed/CSV/JSON/admin trigger | PostgreSQL upsert + Redis refresh |
-| **Python AI/ML Service** | Model router, model-specific preprocessing, inference, metadata | URL/text/web features/content | Probability, label, modelVersion |
+| **Python AI/ML Worker** | Consume AI task từ `q.ai.analyze`; model router, preprocessing, model/LLM inference, giới hạn đồng thời, timeout và retry nội bộ | AI task: `scanId`, `taskId`, features/content | `ai.analysis.completed` / `ai.analysis.failed` vào `q.scan.result`, kèm probability, label, modelVersion |
 | **PostgreSQL** | Source of truth cho business + threat reference data | SQL | Persistent data |
 | **Redis** | Scan/reputation cache, business quota/rate limit theo user/account, idempotency, lightweight lock và nested-scan coordination | Key/value | Cached state |
 | **MinIO / S3-compatible** | Evidence attachment, screenshots (nếu có), exports | Binary | Object key/metadata |
@@ -753,9 +796,11 @@ analyzeUrl(url)
  ├── analyzeRedirectChain()
  ├── analyzeTlsHttps()
  ├── detectTyposquatting()
- ├── queryUrlDomainReputation()
+ ├── usePreEnrichedReputationContext()
+ ├── collectNewHostsAsIndicators()    // host mới trong chuỗi redirect -> derivedIndicators, KHÔNG tự tra
  ├── safeFetchPublicContent()
- └── analyzeHtmlForm()
+ ├── analyzeHtmlForm()
+ └── publishAiTaskIfEnabled()     // publish ai.analysis.requested rồi kết thúc job, KHÔNG chờ kết quả
 
 analyzeWebContent(html, baseUrl?)
  ├── enforceSizeLimit()
@@ -785,11 +830,13 @@ analyzeText(text, contentType)
  ├── detectUrgencyAndImpersonationCues()
  ├── detectPaymentCredentialRequestCues()
  ├── classifyScamScenarioByRules()
- ├── callTextModelIfEnabled()
- └── return signals + derivedIndicators
+ ├── publishAiTaskIfEnabled()     // publish ai.analysis.requested rồi kết thúc job, KHÔNG chờ kết quả
+ └── return signals + derivedIndicators + pendingAiTasks
 ```
 
 `TRANSACTION_POST` không phải scan type/public endpoint riêng; dùng cùng `TEXT` worker qua `contentType=TRANSACTION_POST` và thêm rule/profile cho mua bán, cọc, shipping, fake job, hoàn tiền, investment/payment solicitation.
+
+**Về `publishAiTaskIfEnabled()` ở cả 4.2 và 4.3:** hàm này chỉ sinh `taskId`, publish `ai.analysis.requested` và ghi `taskId` vào `pendingAiTasks[]` của result event. Worker **không** chờ, không giữ connection và không cần biết AI trả lời khi nào. Nếu publish thất bại, worker không được khai `taskId` đó trong `pendingAiTasks[]`, nếu không Orchestrator sẽ chờ một task không bao giờ tới.
 
 ### 4.4. Entity/Reputation Checker Worker - core functions
 
@@ -856,10 +903,10 @@ PostgreSQL = source of truth
 Redis = hot/cache copy
 ```
 
-Read path (hybrid, tránh worker phụ thuộc đồng bộ vào business API ở luồng bình thường):
+Read path — **chỉ lõi được đọc dữ liệu uy tín**:
 
 ```text
-Known primary indicator
+Indicator cần tra
         ↓
 Spring Boot Threat Intelligence Query
         ↓
@@ -871,12 +918,60 @@ PostgreSQL
         ↓
 cache result in Redis
         ↓
-RabbitMQ job kèm reputationContext
-        ↓
-Worker
+reputationContext
+        ├── kèm vào RabbitMQ job  (chỉ dấu đã biết trước khi giao việc)
+        └── gắn thẳng vào signal set của scan  (chỉ dấu worker trả về)
 ```
 
-Nếu Web Worker phát hiện indicator mới giữa chừng và thật sự cần reputation ngay, worker có thể gọi **internal threat-lookup endpoint** riêng với timeout ngắn + circuit breaker. Nếu lookup không khả dụng, worker trả signal `REPUTATION_UNAVAILABLE` và tiếp tục scan; không chờ vô hạn. Worker không đọc trực tiếp PostgreSQL/Redis.
+#### 4.6.1. Cô lập worker và deferred reputation
+
+Nhóm chốt phương án **cô lập worker**, đóng lại điểm treo B2.2 trong `architecture_v3_review.md`. Hệ quả: **không có bất kỳ lời gọi đồng bộ nào đi từ worker ngược về core.** Worker không gọi API của core, không đọc PostgreSQL/Redis, không giữ bản sao dữ liệu uy tín. Bề mặt giao tiếp duy nhất của một worker là RabbitMQ.
+
+Vấn đề phải giải: worker vẫn có thể phát hiện chỉ dấu mới **giữa chừng** một lần quét — ví dụ chuỗi redirect dẫn tới một host chưa từng thấy, hoặc Text Worker vừa trích ra một số tài khoản. Trước đây worker tự gọi ngược để tra. Nay nó không được phép.
+
+**Cách giải: lõi làm giàu ở cả hai đầu.**
+
+| Hướng | Thời điểm | Ai tra | Kết quả đi đâu |
+| --- | --- | --- | --- |
+| **Pre-enrichment** — đường đi | Trước khi publish job | Scan Orchestrator | `reputationContext` nằm sẵn trong job |
+| **Deferred enrichment** — đường về | Khi consume worker result | Signal Aggregator | Signal gắn thẳng vào scan, hoặc job con đã enrich |
+
+Worker chỉ làm một việc: **trả chỉ dấu về, không tra**. Mỗi `DerivedIndicator` mang thêm trường `handling` để nói nó cần gì:
+
+```text
+DerivedIndicator.handling
+ ├── REPUTATION_ONLY   chỉ cần tra uy tín (host mới, số tài khoản trong QR...)
+ └── CHILD_SCAN        cần phân tích đầy đủ (URL cần fetch/DNS/TLS, phone cần report stats)
+```
+
+`handling` là **gợi ý của worker, không phải lệnh**. Orchestrator có quyền quyết định cuối: nó có thể nâng `REPUTATION_ONLY` thành `CHILD_SCAN` khi chỉ dấu đáng phân tích sâu, hoặc hạ `CHILD_SCAN` xuống `REPUTATION_ONLY` khi đã chạm `maxDepth`.
+
+**Vì sao tách hai mức:**
+
+```text
+REPUTATION_ONLY  -> lõi tra ngay trong lúc xử lý result event
+                    (Redis, miss thì PostgreSQL) rồi gắn signal vào scan cha.
+                    KHÔNG tạo scan con, KHÔNG thêm vòng qua hàng đợi.
+                    Chi phí gần bằng đường gọi ngược cũ.
+
+CHILD_SCAN       -> lõi tra uy tín, tạo scan con kèm reputationContext,
+                    publish job như mọi scan con khác.
+                    Thêm một vòng hàng đợi, nằm trong parent deadline 30 s.
+```
+
+Nhờ `REPUTATION_ONLY`, trường hợp phổ biến nhất — host mới trong chuỗi redirect — **không tốn thêm vòng hàng đợi nào**. Lõi đang xử lý result event, nó tra luôn tại chỗ. Đây là lý do việc bỏ đường gọi ngược không làm scan chậm đi đáng kể.
+
+**Đổi lại, có một thứ mất đi và cần nói thẳng:** worker không còn biết uy tín của host mới **trong lúc** nó đang chạy, nên không thể dựa vào uy tín để rẽ nhánh giữa chừng, ví dụ "domain này đã blacklist thì thôi khỏi fetch". Chấp nhận được, vì:
+
+- an toàn khi fetch do **SSRF protection** ở mục 7 bảo đảm, không phải do reputation;
+- reputation chỉ là **một nhóm signal** trong Risk Fusion, và việc chấm điểm diễn ra ở lõi sau khi đã gom đủ signal;
+- phần lớn chỉ dấu đã biết trước vẫn được pre-enrich như cũ, nên worker vẫn có context cho đường thường gặp.
+
+**Những gì biến mất khỏi thiết kế:**
+
+- internal threat-lookup endpoint cho worker;
+- circuit breaker và timeout của đường gọi ngược;
+- signal `REPUTATION_UNAVAILABLE` phát ra **từ worker**. Signal này vẫn tồn tại nhưng nay chỉ do lõi phát ra khi chính lõi không đọc được Redis lẫn PostgreSQL.
 
 ### 4.7. Scan Orchestrator - core functions
 
@@ -893,9 +988,13 @@ createScan(command)
 
 handleWorkerResult(result)
  ├── validateWorkerResult()
+ ├── deduplicateByEventId()
  ├── persistIntermediateMetadataIfNeeded()
  ├── registerDerivedIndicators()
- ├── dispatchChildJobsIfNeeded()
+ ├── resolveReputationOnlyIndicators() // lõi tra tại chỗ, gắn signal vào scan cha
+ ├── registerPendingAiTasks()          // từ result.pendingAiTasks[]
+ ├── matchParkedAiResults()            // AI result về trước worker result
+ ├── dispatchChildJobsIfNeeded()      // kèm reputationContext đã enrich
  ├── checkCompletionBarrier()
  ├── aggregateSignals()
  ├── evaluateRules()
@@ -903,16 +1002,29 @@ handleWorkerResult(result)
  ├── composeResult()
  ├── persistFinalResult()
  └── cacheFinalResult()
+
+handleAiResult(aiResult)
+ ├── validateAiResult()                // bắt buộc có scanId + taskId
+ ├── deduplicateByEventId()
+ ├── resolveAiTask()
+ │    ├── task đã biết      -> đóng task, giữ prediction làm AnalysisSignal
+ │    ├── task chưa biết    -> park theo scanId, chờ worker result khai pendingAiTasks
+ │    └── scan đã finalize  -> ghi nhận late signal, KHÔNG sửa RiskResult đã trả
+ ├── checkCompletionBarrier()
+ └── finalizeIfReady()
 ```
 
 #### 4.7.1. Nested scan coordination / completion barrier
 
 Nested scan phải có cơ chế kết thúc rõ ràng để parent scan không treo `PROCESSING` vĩnh viễn.
 
-- **PostgreSQL `scan_relations`** là source of truth cho quan hệ parent-child và trạng thái child scan.
-- **Redis** có thể giữ counter/barrier tạm thời (`expectedChildren`, `completedChildren`, `failedChildren`) để kiểm tra nhanh; mất Redis không làm mất quan hệ nghiệp vụ.
+Barrier đếm **hai loại việc đang chờ**: child scan và AI task. Cả hai đều có thể không bao giờ về, nên cả hai đều cần deadline.
+
+- **PostgreSQL `scan_relations`** là source of truth cho quan hệ parent-child và trạng thái child scan. **`scan_ai_tasks`** là source of truth cho AI task đang chờ (`scanId`, `taskId`, `kind`, `status`, `requestedAt`).
+- **Redis** có thể giữ counter/barrier tạm thời (`expectedChildren`, `completedChildren`, `failedChildren`, `expectedAiTasks`, `completedAiTasks`) để kiểm tra nhanh; mất Redis không làm mất quan hệ nghiệp vụ vì dựng lại được từ PostgreSQL.
 - **Parent deadline mặc định: 30 giây.** Hết deadline thì finalize bằng các signal đã có và đặt `degraded=true`, thay vì chờ vô hạn.
-- **Child failure không làm parent fail toàn bộ** nếu vẫn có đủ tín hiệu để đánh giá; failure được ghi vào evidence/metadata.
+- **AI task deadline mặc định: 20 giây**, luôn nhỏ hơn parent deadline để AI chậm không tự đẩy scan tới hạn chót của nó.
+- **Child failure không làm parent fail toàn bộ** nếu vẫn có đủ tín hiệu để đánh giá; failure được ghi vào evidence/metadata. **AI failure cũng vậy**: `ai.analysis.failed` đóng task ngay và finalize sớm, không phải chờ hết deadline.
 - **Giới hạn độ sâu nested scan: `maxDepth=2`** cho MVP.
 - Dùng normalized indicator hash/visited set theo scan tree để chặn cycle như `URL -> QR -> URL -> ...`.
 
@@ -921,13 +1033,24 @@ Parent Scan
  ├── expectedChildren = N
  ├── completedChildren
  ├── failedChildren
- ├── deadline = createdAt + 30s
+ ├── expectedAiTasks = K          (khai bởi worker qua pendingAiTasks[])
+ ├── completedAiTasks             (gồm cả ai.analysis.failed)
+ ├── deadline   = createdAt + 30s
+ ├── aiTaskDeadline = createdAt + 20s
  └── depth <= 2
 
 Finalize khi:
-1) completed + failed == expected, hoặc
-2) deadline hết -> partial/degraded result
+1) completed + failed == expected VÀ completedAiTasks == expectedAiTasks, hoặc
+2) aiTaskDeadline hết -> bỏ AI task còn treo, degraded=true, renormalize trọng số, hoặc
+3) deadline hết    -> partial/degraded result
 ```
+
+**Hai tình huống race phải xử lý được:**
+
+| Tình huống | Xử lý |
+| --- | --- |
+| AI result về **trước** worker result (AI nhanh, worker còn đang fetch) | Park AI result theo `scanId`; khi worker result tới và khai `pendingAiTasks[]` thì ghép lại qua `matchParkedAiResults()` |
+| AI result về **sau** khi scan đã `COMPLETED` | Ghi nhận như late signal vào metadata/audit để hiệu chỉnh policy; **không** sửa `RiskResult` đã trả cho người dùng |
 
 ### 4.8. Rule Engine, Risk Fusion và Result Composer
 
@@ -1030,6 +1153,32 @@ Risk Entity / Reputation Signal / Threat Reference
 
 Không nên cho report chưa verify tạo hard blacklist trực tiếp. Community signal cần source/reporter confidence và moderation status.
 
+### 4.11. AI/ML Worker (Python) - core functions
+
+```text
+handleAiTask(task)
+ ├── validateTask()                    // scanId, taskId, kind, payload size
+ ├── deduplicateByTaskId()             // at-least-once: task lặp không chạy inference lần hai
+ ├── routeModel(kind)
+ │    ├── URL_FEATURES
+ │    ├── TEXT_CONTENT
+ │    └── WEB_CONTENT
+ ├── preprocess()
+ ├── runInferenceWithTimeout()         // timeout + retry nội bộ, không vượt aiTaskDeadline
+ ├── postprocess()                     // probability, label, modelVersion, latencyMs
+ └── publishResult()
+      ├── thành công -> ai.analysis.completed(scanId, taskId, prediction)
+      └── thất bại   -> ai.analysis.failed(scanId, taskId, reason)
+```
+
+**Ràng buộc bắt buộc:**
+
+- Worker **luôn** publish một kết quả cho mỗi task nhận được, kể cả khi fail. Im lặng là lỗi thiết kế, không phải degraded hợp lệ.
+- Tổng thời gian xử lý một task, gồm cả retry nội bộ, phải **nhỏ hơn `aiTaskDeadline`**. Quá hạn thì trả `ai.analysis.failed` với `reason=TIMEOUT` thay vì tiếp tục chạy vô ích.
+- Giới hạn đồng thời đặt bằng `prefetch_count`; đây là cách duy nhất khống chế chi phí và tải model/LLM ở tầng MVP.
+- Worker không đọc/ghi PostgreSQL, Redis hay business table; mọi thứ nó cần nằm trong payload của task.
+- Không log raw nội dung nhạy cảm (CCCD, thông tin tài khoản) quá mức cần thiết cho debug.
+
 ---
 
 ## 5. RabbitMQ topology và contracts
@@ -1046,7 +1195,9 @@ DLX: antiscan.dlx
 
 Worker queue bind theo routing key tương ứng. Khi retry vượt giới hạn, message đi qua DLX vào queue DLQ tương ứng. RabbitMQ được xem là **at-least-once delivery**, vì vậy consumer phải idempotent.
 
-DLQ dùng cùng naming convention, ví dụ `q.scan.url.dlq`, `q.scan.text.dlq`, `q.scan.entity.dlq`, `q.scan.qr.dlq`; DLQ không được auto-retry vô hạn và phải có metric/alert để vận hành xử lý.
+DLQ dùng cùng naming convention, ví dụ `q.scan.url.dlq`, `q.scan.text.dlq`, `q.scan.entity.dlq`, `q.scan.qr.dlq`, `q.ai.analyze.dlq`; DLQ không được auto-retry vô hạn và phải có metric/alert để vận hành xử lý.
+
+Riêng `q.ai.analyze.dlq` cần alert riêng: một AI task rơi vào DLQ nghĩa là có một scan đang chờ một `taskId` sẽ không bao giờ được đóng bằng result, và chỉ thoát treo nhờ `aiTaskDeadline`. Số message trong DLQ này là chỉ báo trực tiếp của số scan bị degraded vì AI.
 
 ### 5.1. Queue chính
 
@@ -1055,6 +1206,7 @@ q.scan.url
 q.scan.text
 q.scan.entity
 q.scan.qr
+q.ai.analyze
 q.scan.result
 q.report.export
 q.notification
@@ -1075,6 +1227,10 @@ scan.entity.analyzed
 
 scan.qr.requested
 scan.qr.parsed
+
+ai.analysis.requested
+ai.analysis.completed
+ai.analysis.failed
 
 scan.completed
 scan.failed
@@ -1106,15 +1262,93 @@ threat.ingest.requested
     }
   ],
   "derivedIndicators": [],
-  "modelPrediction": null,
+  "pendingAiTasks": [],
   "processorVersion": "entity-worker-v1",
   "processedAt": "2026-09-19T00:00:00Z"
 }
 ```
 
+`pendingAiTasks[]` thay cho field `modelPrediction` của V3.1. Worker không còn cầm prediction trong tay lúc trả result, nên nó **khai báo những AI task nó vừa gửi đi** để Orchestrator biết phải chờ thêm:
+
+```json
+"pendingAiTasks": [
+  { "taskId": "aitask_abc", "kind": "URL_FEATURES" }
+]
+```
+
+Worker nào không dùng AI thì để mảng rỗng. Chỉ khai `taskId` **sau khi publish AI task thành công**; khai một task chưa publish được sẽ khiến scan chờ vô ích tới hết `aiTaskDeadline`.
+
+`derivedIndicators[]` mang thêm `handling` để lõi biết chỉ dấu đó cần tra uy tín hay cần scan con (mục 4.6.1):
+
+```json
+"derivedIndicators": [
+  { "type": "DOMAIN", "normalizedValue": "login-vcb.example", "handling": "REPUTATION_ONLY" },
+  { "type": "PHONE",  "normalizedValue": "+84901234567",      "handling": "CHILD_SCAN" }
+]
+```
+
+`DOMAIN` là indicator type **chỉ sinh từ nội bộ**, không có public endpoint; nó tồn tại để worker trả host mới về cho lõi tra mà không phải tạo một `URL` scan đầy đủ.
+
 Mặc định MVP: manual acknowledgement, tối đa **2 retry** sau lần chạy đầu, sau đó đưa vào DLQ. Message phải có `eventId`, `jobId`, `scanId`, correlation id và version để trace pipeline. Consumer lưu/check `eventId` đã xử lý để ACK duplicate mà không cộng signal lần hai.
 
 `WEB_CONTENT` không có queue riêng; nó là mode nội bộ của `q.scan.url`. `TRANSACTION_POST` dùng `q.scan.text`; Phone/Bank dùng chung `q.scan.entity`.
+
+### 5.4. AI task và AI result contract
+
+Đây là phần contract mới của V3.2. Hai message này là toàn bộ giao diện giữa worker phân tích, AI Worker và core.
+
+**AI task** — Web/Text Worker publish, routing key `ai.analysis.requested`, vào `q.ai.analyze`:
+
+```json
+{
+  "eventId": "evt_ai_req_1",
+  "taskId": "aitask_abc",
+  "scanId": "scan_123",
+  "parentScanId": null,
+  "kind": "URL_FEATURES",
+  "attempt": 1,
+  "payload": {
+    "normalizedUrl": "https://example.com/login",
+    "features": {},
+    "contentExcerpt": null
+  },
+  "requestedBy": "url-worker-v1",
+  "requestedAt": "2026-09-19T00:00:00Z",
+  "deadlineAt": "2026-09-19T00:00:20Z"
+}
+```
+
+**AI result** — AI Worker publish, routing key `ai.analysis.completed` hoặc `ai.analysis.failed`, vào `q.scan.result`:
+
+```json
+{
+  "eventId": "evt_ai_res_1",
+  "taskId": "aitask_abc",
+  "scanId": "scan_123",
+  "status": "COMPLETED",
+  "prediction": {
+    "label": "PHISHING",
+    "probability": 0.87,
+    "modelVersion": "url-model-v1",
+    "latencyMs": 420
+  },
+  "failureReason": null,
+  "processorVersion": "ai-worker-v1",
+  "processedAt": "2026-09-19T00:00:00Z"
+}
+```
+
+Khi thất bại: `status = "FAILED"`, `prediction = null`, `failureReason` thuộc `TIMEOUT | MODEL_UNAVAILABLE | INVALID_PAYLOAD | INTERNAL_ERROR`.
+
+**Quy tắc bắt buộc của cặp contract này:**
+
+| Quy tắc | Lý do |
+| --- | --- |
+| `scanId` + `taskId` có mặt ở **cả task lẫn result** | Là khóa duy nhất để Orchestrator ghép kết quả và đóng đúng barrier |
+| Mỗi task nhận được phải sinh **đúng một** result, kể cả khi fail | Không có result thì scan chỉ thoát treo nhờ deadline, làm chậm mọi scan có AI |
+| AI result **không** chứa `riskScore`, `riskLevel` hay verdict | Business verdict thuộc Risk Fusion, xem mục 4.8 |
+| Consumer hai phía idempotent theo `eventId` và `taskId` | Delivery là at-least-once; task lặp không được chạy inference lần hai, result lặp không được cộng signal lần hai |
+| `deadlineAt` đi kèm trong task | AI Worker tự biết khi nào chạy tiếp là vô nghĩa và nên trả `TIMEOUT` sớm |
 
 ---
 
@@ -1126,7 +1360,8 @@ Worker chủ yếu **phân tích và trả signal**. Spring Boot là owner của
 
 ```mermaid
 flowchart LR
-    Worker[Scanner / Parser / Entity Worker] -->|AnalysisSignal + DerivedIndicator| MQ[(RabbitMQ)]
+    Worker[Scanner / Parser / Entity Worker] -->|AnalysisSignal + DerivedIndicator + pendingAiTasks| MQ[(RabbitMQ)]
+    AIWorker[Python AI/ML Worker] -->|Prediction theo scanId + taskId| MQ
     MQ --> Backend[Spring Boot Scan Orchestrator]
     Backend --> Aggregator[Signal Aggregator]
     Aggregator --> Rule[Rule Engine]
@@ -1146,6 +1381,7 @@ scan_requests
 scan_results
 scan_signals           (optional, nếu cần trace/debug/research)
 scan_relations         (parent-child scans)
+scan_ai_tasks          (AI task đang chờ: scanId, taskId, kind, status)
 risk_entities
 risk_sources
 rules / rule_versions
@@ -1197,7 +1433,9 @@ Vì Web/URL Scanner có thể fetch URL do người dùng cung cấp, bắt bu�
 - Chặn hostname nội bộ như `localhost`, `.local`, internal DNS suffix được cấu hình.
 - Giới hạn port được phép.
 - Không gửi credential/header nội bộ khi fetch.
-- Network-isolate worker khỏi management plane/database nếu có thể. Worker không được truy cập trực tiếp PostgreSQL/Redis; dynamic threat lookup chỉ qua internal endpoint được giới hạn rõ ràng.
+- Network-isolate worker khỏi management plane/database. Worker **không** truy cập PostgreSQL/Redis và **không** gọi bất kỳ API nào của Spring Boot. Kết nối ra ngoài duy nhất được phép, ngoài RabbitMQ, là việc fetch public content của URL Scanner — chính vì vậy SSRF protection ở trên mới là biên phòng thủ chính.
+
+Quy tắc cô lập này kiểm chứng được ở tầng hạ tầng: trong network policy, worker chỉ cần route tới RabbitMQ (và Internet công cộng với URL Scanner). Nếu một worker cần mở thêm kết nối tới core hay database thì đó là dấu hiệu thiết kế đã lệch, không phải nhu cầu hợp lệ.
 
 ### 7.1. Operational defaults cho MVP
 
@@ -1207,8 +1445,10 @@ Các giá trị này là **initial engineering defaults**, chưa phải benchmar
 | --- | --- |
 | Parent/nested scan deadline | 30 s |
 | Max nested depth | 2 |
-| Internal threat lookup timeout | 500 ms |
-| AI inference timeout | 2 s |
+| Reputation lookup timeout (trong lõi, Redis -> PostgreSQL) | 500 ms |
+| AI task deadline - Orchestrator chờ | 20 s, luôn nhỏ hơn parent deadline |
+| AI model/LLM call timeout - trong AI Worker | 10 s, đã tính cả retry nội bộ |
+| AI Worker concurrency (`prefetch_count`) | 4 task đồng thời |
 | Worker retry | 2 lần sau attempt đầu, rồi DLQ |
 | URL redirect limit | 5 |
 | URL fetched response size | 5 MB |
@@ -1259,7 +1499,7 @@ POST /v1/scans/entity
 }
 ```
 
-`WEB_CONTENT` vẫn tồn tại như **internal mode** của URL worker sau khi hệ thống fetch HTML/Form, không cần public endpoint cho user. Standalone CCCD lookup là **Future Scope**; MVP chỉ tạo sensitive-data signal khi CCCD xuất hiện hoặc được yêu cầu trong Text/Web.
+`WEB_CONTENT` vẫn tồn tại như **internal mode** của URL worker sau khi hệ thống fetch HTML/Form, không cần public endpoint cho user. Tương tự, `DOMAIN` là **derived indicator type nội bộ** dùng cho deferred reputation (mục 4.6.1), không phải `entityType` hợp lệ của `POST /v1/scans/entity`. Standalone CCCD lookup là **Future Scope**; MVP chỉ tạo sensitive-data signal khi CCCD xuất hiện hoặc được yêu cầu trong Text/Web.
 
 API layer phải mask sensitive values trong response/log theo policy.
 
@@ -1271,13 +1511,13 @@ API layer phải mask sensitive values trong response/log theo policy.
 | --- | --- |
 | Front-end | **Next.js** - `User Web` và `Admin Dashboard` là hai client role/boundary riêng; User Web có cùng core user features với Mobile |
 | Back-end | **Java Spring Boot** - REST API, Modular Monolith, input routing, Scan Orchestrator, Threat/Reputation Query, Rule Engine, Risk Fusion, Result Composer, History, Report, Admin, Notification |
-| AI / ML | **Python** - service riêng cho preprocessing/model inference; **FastAPI** đề xuất cho REST inference trong MVP; gRPC khi cần typed contract/throughput cao hơn |
+| AI / ML | **Python** - **worker riêng** consume `q.ai.analyze` qua AMQP (`pika`/`aio-pika`) và publish kết quả vào `q.scan.result`. Luồng scan **không** gọi REST/gRPC inference. **FastAPI** chỉ giữ cho `/health`, `/ready` và diagnostics nội bộ |
 | Mobile | **React Native** - cùng core user features với User Web; thêm QR camera, share intent và interaction native khi phù hợp |
 | Database | **PostgreSQL** - source of truth, `JSONB` cho analysis/result đa dạng<br />**Redis** - cache, rate limiting, idempotency, lock |
-| Messaging | **RabbitMQ** - `topic exchange`, async worker jobs, nested scan jobs, result events, retry/DLQ |
+| Messaging | **RabbitMQ** - `topic exchange`, async worker jobs, nested scan jobs, **AI task**, result events (worker + AI), retry/DLQ |
 | Storage | **MinIO** local/self-host hoặc **S3-compatible storage** khi deploy |
 | Gateway | **Nginx** - reverse proxy, TLS termination, routing, coarse IP/flood rate limit |
-| Container / Local Dev | **Docker Compose** - PostgreSQL, Redis, RabbitMQ, MinIO, Spring Boot, workers, Python AI service, Next.js, Nginx |
+| Container / Local Dev | **Docker Compose** - PostgreSQL, Redis, RabbitMQ, MinIO, Spring Boot, workers, Python AI worker, Next.js, Nginx |
 | CI/CD | **GitHub Actions** - build, test, image build/deploy |
 | Deployment | **AWS EC2 hoặc VPS** chạy Docker Compose production cho scope khóa luận/MVP |
 | Edge / Public Access | **Cloudflare DNS / Tunnel / WAF** có thể sử dụng khi cần |
@@ -1295,9 +1535,14 @@ Checklist này phục vụ team triển khai; khi đưa vào báo cáo/thesis c�
 - [ ] Có queue/routing key nếu async chưa?
 - [ ] Worker/module có function xử lý cụ thể chưa?
 - [ ] Worker trả `AnalysisSignal` theo contract chưa?
+- [ ] Worker có giữ được tính cô lập không? Nghĩa là **không** gọi API core, **không** chạm PostgreSQL/Redis?
+- [ ] Chỉ dấu phát hiện giữa chừng có được trả về qua `derivedIndicators[]` kèm `handling` đúng chưa?
 - [ ] Nếu input sinh nested indicator, Orchestrator có child-scan flow chưa?
+- [ ] Nếu input dùng AI, worker có publish AI task và khai `pendingAiTasks[]` chưa?
+- [ ] AI Worker có đảm bảo luôn trả `completed` hoặc `failed` cho task đó chưa?
+- [ ] Completion barrier có đếm AI task và có `aiTaskDeadline` chưa?
 - [ ] Rule Engine biết consume signal mới chưa?
-- [ ] Risk Fusion policy xử lý signal mới chưa?
+- [ ] Risk Fusion policy xử lý signal mới chưa? Nếu AI thiếu, có renormalize thay vì coi = 0 chưa?
 - [ ] Result Composer giải thích/khuyến nghị được chưa?
 - [ ] History/status lưu và query được chưa?
 - [ ] Logging có tránh lộ dữ liệu nhạy cảm chưa?
@@ -1308,8 +1553,8 @@ Checklist này phục vụ team triển khai; khi đưa vào báo cáo/thesis c�
 Với revision này, các input chính thức hiện tại đều có processor owner:
 
 ```text
-URL (+ internal HTML/Form) -> Web/URL Scanner Worker
-Text + Transaction Post      -> Text Analyzer Worker (`contentType`)
+URL (+ internal HTML/Form) -> Web/URL Scanner Worker (+ AI task tùy chọn)
+Text + Transaction Post      -> Text Analyzer Worker (`contentType`) (+ AI task tùy chọn)
 Phone + Bank                 -> Entity/Reputation Checker Worker
 CCCD request cue             -> Text/Web sensitive-data signal (không standalone lookup ở MVP)
 QR/VietQR                    -> QR Parser Worker -> nested scan routing
