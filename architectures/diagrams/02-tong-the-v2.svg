@@ -21,7 +21,7 @@ text {font-family:Arial,Helvetica,sans-serif;fill:#172333;text-anchor:middle}
 <path d="M300 185V202H530V225" class="flow "/>
 <path d="M640 185V225" class="flow "/>
 <path d="M980 185V202H750V225" class="flow "/>
-<text x="820" y="216" class="label">HTTPS</text>
+<text x="820" y="216" class="label">HTTPS / REST</text>
 <rect x="415" y="225" width="450" height="64" rx="9" class="box"/>
 <text x="640" y="256" class="head">Nginx</text>
 <text x="640" y="282" class="small">TLS · reverse proxy · giới hạn request</text>
@@ -48,9 +48,9 @@ text {font-family:Arial,Helvetica,sans-serif;fill:#172333;text-anchor:middle}
 <text x="965" y="495" class="body">Quản trị · Thông báo · Nhật ký</text>
 <text x="965" y="518" class="small">Quản trị · thông báo · theo dõi</text>
 <path d="M500 555V625" class="flow "/>
-<text x="409" y="594" class="label">giao việc</text>
+<text x="393" y="594" class="label">Async · giao việc</text>
 <path d="M900 625V555" class="flow "/>
-<text x="1004" y="594" class="label">nhận kết quả</text>
+<text x="1020" y="594" class="label">Async · nhận kết quả</text>
 <rect x="300" y="625" width="840" height="100" rx="9" class="box"/>
 <text x="720" y="655" class="head">RabbitMQ — hàng đợi công việc</text>
 <rect x="320" y="671" width="390" height="38" rx="9" class="box"/>
@@ -58,9 +58,9 @@ text {font-family:Arial,Helvetica,sans-serif;fill:#172333;text-anchor:middle}
 <rect x="730" y="671" width="390" height="38" rx="9" class="box"/>
 <text x="925" y="696" class="small">Kết quả phân tích</text>
 <path d="M500 725V815" class="flow "/>
-<text x="396" y="774" class="label">nhận việc quét</text>
+<text x="388" y="774" class="label">Async · nhận việc quét</text>
 <path d="M900 815V725" class="flow "/>
-<text x="746" y="767" class="label">trả tín hiệu / chỉ dấu</text>
+<text x="746" y="767" class="label">Async · trả tín hiệu / chỉ dấu</text>
 <rect x="150" y="815" width="990" height="165" rx="9" class="group"/>
 <text x="645" y="846" class="head">Các worker phân tích</text>
 <rect x="170" y="863" width="220" height="96" rx="9" class="box"/>
@@ -80,16 +80,18 @@ text {font-family:Arial,Helvetica,sans-serif;fill:#172333;text-anchor:middle}
 <text x="1000" y="915" class="small">QR / VietQR · tách chỉ dấu</text>
 <text x="1000" y="939" class="small">Trả chỉ dấu để tạo quét con</text>
 <path d="M150 936H90V502H150" class="flow optional sync"/>
-<text x="65" y="721" class="label" transform="rotate(-90 65 721)">Web / Entity → tra uy tín; Text → tra chỉ dấu khi cần</text>
+<text x="44" y="721" class="label" transform="rotate(-90 44 721)">Web / Entity; Text tra chỉ dấu khi cần</text>
+<text x="68" y="721" class="label" transform="rotate(-90 68 721)">Sync · tra cứu / nhận phản hồi</text>
 <path d="M280 959V1055" class="flow optional sync"/>
 <path d="M520 959V1055" class="flow optional sync"/>
-<text x="398" y="1020" class="label">Gọi AI / nhận dự đoán</text>
+<text x="398" y="1007" class="label">Sync · gọi AI</text>
+<text x="398" y="1031" class="label">nhận dự đoán</text>
 <rect x="170" y="1055" width="480" height="103" rx="9" class="box"/>
 <text x="410" y="1086" class="head">Dịch vụ AI/ML — Python</text>
 <text x="410" y="1112" class="small">Tùy chọn · phục vụ Web / Text worker</text>
 <text x="410" y="1135" class="small">Xác suất · nhãn · phiên bản mô hình</text>
 <path d="M1140 691H1190V1010H1000V1055" class="flow "/>
-<text x="1172" y="874" class="label" transform="rotate(-90 1172 874)">nhận việc xuất báo cáo</text>
+<text x="1172" y="874" class="label" transform="rotate(-90 1172 874)">Async · nhận việc xuất báo cáo</text>
 <rect x="860" y="1055" width="280" height="103" rx="9" class="box"/>
 <text x="1000" y="1086" class="head">Worker xuất báo cáo</text>
 <text x="1000" y="1112" class="small">PDF / HTML</text>
