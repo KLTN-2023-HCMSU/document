@@ -8,3 +8,7 @@
 !/specifications/**
 !/templates
 !/templates/**
+!/plan
+!/plan/**
+!/schema
+!/schema/**
