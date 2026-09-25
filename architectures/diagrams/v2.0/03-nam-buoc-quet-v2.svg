@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#667899"/>
+    </marker>
+    <marker id="arrowOrange" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#d97706"/>
+    </marker>
+    <style>
+      .title { font: 700 42px Inter,Segoe UI,Arial,sans-serif; fill: #0f1f4d; }
+      .subtitle { font: 400 18px Inter,Segoe UI,Arial,sans-serif; fill: #6b7b9c; }
+      .box { fill: #ffffff; stroke: #8ea0c9; stroke-width: 2; rx: 18; ry: 18; }
+      .softbox { fill: #f4f7fc; stroke: #8ea0c9; stroke-width: 2; rx: 18; ry: 18; }
+      .bluebox { fill: #eaf2ff; stroke: #2f7de1; stroke-width: 2.5; rx: 18; ry: 18; }
+      .purplebox { fill: #f0efff; stroke: #5966f2; stroke-width: 2.5; rx: 18; ry: 18; }
+      .greenbox { fill: #ecfdf3; stroke: #22c55e; stroke-width: 2.5; rx: 18; ry: 18; }
+      .orangebox { fill: #fff7e8; stroke: #f59e0b; stroke-width: 2.5; rx: 18; ry: 18; }
+      .label { font: 700 18px Inter,Segoe UI,Arial,sans-serif; fill: #0f1f4d; }
+      .small { font: 400 14px Inter,Segoe UI,Arial,sans-serif; fill: #6b7b9c; }
+      .body { font: 400 16px Inter,Segoe UI,Arial,sans-serif; fill: #6b7b9c; }
+      .tiny { font: 400 12px Inter,Segoe UI,Arial,sans-serif; fill: #6b7b9c; }
+      .num { font: 700 16px Inter,Segoe UI,Arial,sans-serif; fill: #0f1f4d; }
+      .arrow { stroke: #667899; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .arrow2 { stroke: #667899; stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+      .dashed { stroke: #d97706; stroke-width: 3; fill: none; stroke-dasharray: 10 8; marker-end: url(#arrowOrange); }
+      .section { font: 700 22px Inter,Segoe UI,Arial,sans-serif; }
+      .footerbox { fill: #f8fbff; stroke: #d6deeb; stroke-width: 1.5; rx: 18; ry: 18; }
+    </style>
+  </defs>
+  <rect x="0" y="0" width="100%" height="100%" fill="#ffffff"/>
+<text x="800" y="78" text-anchor="middle" class="title">Một lần quét đi qua 5 bước</text><text x="800" y="126" text-anchor="middle" class="subtitle">Bước 3 và 4 chạy nền — người dùng nhận mã scan ngay, xem kết quả khi xong</text><rect x="60" y="260" width="250" height="240" class="bluebox"/><text x="185.0" y="345" text-anchor="middle" class="label"><tspan x="185.0" dy="0">1. Nhận input</tspan></text><text x="185.0" y="410" text-anchor="middle" class="body"><tspan x="185.0" dy="0">link · văn bản · SDT ·</tspan><tspan x="185.0" dy="26">số tài khoản · QR</tspan></text><rect x="370" y="260" width="250" height="240" class="softbox"/><text x="495.0" y="345" text-anchor="middle" class="label"><tspan x="495.0" dy="0">2. Phân loại &</tspan><tspan x="495.0" dy="36">chuẩn hoá</tspan></text><text x="495.0" y="410" text-anchor="middle" class="body"><tspan x="495.0" dy="0">xác định loại scan</tspan><tspan x="495.0" dy="26">và chọn đúng processor</tspan></text><rect x="680" y="260" width="250" height="240" class="bluebox"/><text x="805.0" y="345" text-anchor="middle" class="label"><tspan x="805.0" dy="0">3. Phân tích</tspan></text><text x="805.0" y="410" text-anchor="middle" class="body"><tspan x="805.0" dy="0">worker chạy nền ·</tspan><tspan x="805.0" dy="26">AI/LLM là tín hiệu</tspan><tspan x="805.0" dy="26">tuỳ chọn</tspan></text><rect x="990" y="260" width="250" height="240" class="purplebox"/><text x="1115.0" y="345" text-anchor="middle" class="label"><tspan x="1115.0" dy="0">4. Tổng hợp &</tspan><tspan x="1115.0" dy="36">chấm điểm</tspan></text><text x="1115.0" y="410" text-anchor="middle" class="body"><tspan x="1115.0" dy="0">luật + uy tín +</tspan><tspan x="1115.0" dy="26">cộng đồng + AI</tspan><tspan x="1115.0" dy="26">→ điểm 0–100</tspan></text><rect x="1300" y="260" width="250" height="240" class="greenbox"/><text x="1425.0" y="345" text-anchor="middle" class="label"><tspan x="1425.0" dy="0">5. Trả kết quả</tspan></text><text x="1425.0" y="410" text-anchor="middle" class="body"><tspan x="1425.0" dy="0">mức độ · bằng chứng ·</tspan><tspan x="1425.0" dy="26">giải thích · khuyến nghị</tspan></text><path d="M310 380 L360 380" class="arrow"/><path d="M620 380 L670 380" class="arrow"/><path d="M930 380 L980 380" class="arrow"/><path d="M1240 380 L1290 380" class="arrow"/><path d="M790 500 L790 605 L495 605 L495 500" class="dashed"/><text x="645" y="585" text-anchor="middle" style="font:400 16px Inter,Segoe UI,Arial,sans-serif; fill:#d97706;">chỉ dấu lồng nhau → tạo scan con</text><line x1="50" y1="720" x2="1550" y2="720" stroke="#d6deeb" stroke-width="2"/><text x="800" y="760" text-anchor="middle" class="body">Ví dụ: một tin nhắn có thể chứa link, số điện thoại và số tài khoản; một mã VietQR có thể chứa số tài khoản và nội dung chuyển khoản.</text>
+<text x="800" y="786" text-anchor="middle" class="body">Hệ thống tách từng chỉ dấu thành scan con, rồi hợp nhất toàn bộ tín hiệu lại trước khi chấm điểm một lần duy nhất.</text>
+<rect x="520" y="825" width="560" height="54" class="footerbox"/><text x="800" y="858" text-anchor="middle" class="body">Guest vẫn có thể scan; người dùng đăng nhập có thêm lịch sử scan.</text></svg>

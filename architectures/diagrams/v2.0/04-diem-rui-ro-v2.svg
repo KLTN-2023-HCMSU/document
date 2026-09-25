@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#667899"/>
+    </marker>
+    <marker id="arrowOrange" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#d97706"/>
+    </marker>
+    <style>
+      .title { font: 700 42px Inter,Segoe UI,Arial,sans-serif; fill: #0f1f4d; }
+      .subtitle { font: 400 18px Inter,Segoe UI,Arial,sans-serif; fill: #6b7b9c; }
+      .box { fill: #ffffff; stroke: #8ea0c9; stroke-width: 2; rx: 18; ry: 18; }
+      .softbox { fill: #f4f7fc; stroke: #8ea0c9; stroke-width: 2; rx: 18; ry: 18; }
+      .bluebox { fill: #eaf2ff; stroke: #2f7de1; stroke-width: 2.5; rx: 18; ry: 18; }
+      .purplebox { fill: #f0efff; stroke: #5966f2; stroke-width: 2.5; rx: 18; ry: 18; }
+      .greenbox { fill: #ecfdf3; stroke: #22c55e; stroke-width: 2.5; rx: 18; ry: 18; }
+      .orangebox { fill: #fff7e8; stroke: #f59e0b; stroke-width: 2.5; rx: 18; ry: 18; }
+      .label { font: 700 18px Inter,Segoe UI,Arial,sans-serif; fill: #0f1f4d; }
+      .small { font: 400 14px Inter,Segoe UI,Arial,sans-serif; fill: #6b7b9c; }
+      .body { font: 400 16px Inter,Segoe UI,Arial,sans-serif; fill: #6b7b9c; }
+      .tiny { font: 400 12px Inter,Segoe UI,Arial,sans-serif; fill: #6b7b9c; }
+      .num { font: 700 16px Inter,Segoe UI,Arial,sans-serif; fill: #0f1f4d; }
+      .arrow { stroke: #667899; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .arrow2 { stroke: #667899; stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+      .dashed { stroke: #d97706; stroke-width: 3; fill: none; stroke-dasharray: 10 8; marker-end: url(#arrowOrange); }
+      .section { font: 700 22px Inter,Segoe UI,Arial,sans-serif; }
+      .footerbox { fill: #f8fbff; stroke: #d6deeb; stroke-width: 1.5; rx: 18; ry: 18; }
+    </style>
+  </defs>
+  <rect x="0" y="0" width="100%" height="100%" fill="#ffffff"/>
+<text x="800" y="78" text-anchor="middle" class="title">Điểm rủi ro được tính như thế nào</text><text x="800" y="126" text-anchor="middle" class="subtitle">Nhiều nguồn tín hiệu, một nơi ra quyết định</text><rect x="40" y="210" width="390" height="115" class="bluebox"/><text x="235.0" y="248" text-anchor="middle" class="label"><tspan x="235.0" dy="0">Tín hiệu kỹ thuật</tspan></text><text x="235.0" y="278" text-anchor="middle" class="body"><tspan x="235.0" dy="0">URL · DNS · TLS · form đăng nhập</tspan></text><rect x="40" y="380" width="390" height="115" class="bluebox"/><text x="235.0" y="418" text-anchor="middle" class="label"><tspan x="235.0" dy="0">Tín hiệu nội dung</tspan></text><text x="235.0" y="448" text-anchor="middle" class="body"><tspan x="235.0" dy="0">văn bản · bài đăng giao dịch</tspan></text><rect x="40" y="550" width="390" height="115" class="orangebox"/><text x="235.0" y="588" text-anchor="middle" class="label"><tspan x="235.0" dy="0">Uy tín & cộng đồng</tspan></text><text x="235.0" y="618" text-anchor="middle" class="body"><tspan x="235.0" dy="0">threat intel · báo cáo đã duyệt</tspan></text><rect x="40" y="720" width="390" height="115" class="purplebox"/><text x="235.0" y="758" text-anchor="middle" class="label"><tspan x="235.0" dy="0">AI / ML / LLM</tspan></text><text x="235.0" y="788" text-anchor="middle" class="body"><tspan x="235.0" dy="0">xác suất · nhãn · tuỳ chọn</tspan></text><rect x="560" y="350" width="460" height="230" class="purplebox"/><text x="790" y="445" text-anchor="middle" style="font:700 34px Inter,Segoe UI,Arial,sans-serif; fill:#0f1f4d;">Tổng hợp rủi ro</text><text x="790" y="505" text-anchor="middle" class="body"><tspan x="790" dy="0">Signal Aggregation · Rule Engine · Risk Fusion</tspan><tspan x="790" dy="26">theo một phiên bản chính sách</tspan></text><rect x="1120" y="240" width="420" height="110" class="softbox"/><text x="1330.0" y="278" text-anchor="middle" class="label"><tspan x="1330.0" dy="0">Điểm rủi ro 0–100</tspan></text><text x="1330.0" y="308" text-anchor="middle" class="body"><tspan x="1330.0" dy="0">số duy nhất để so sánh và lọc</tspan></text><rect x="1085" y="430" width="420" height="110" class="greenbox"/><text x="1295.0" y="468" text-anchor="middle" class="label"><tspan x="1295.0" dy="0">SAFE · CAUTION · DANGER</tspan></text><text x="1295.0" y="498" text-anchor="middle" class="body"><tspan x="1295.0" dy="0">mức cảnh báo hiển thị cho người dùng</tspan></text><rect x="1120" y="620" width="420" height="110" class="softbox"/><text x="1330.0" y="658" text-anchor="middle" class="label"><tspan x="1330.0" dy="0">Bằng chứng · giải thích ·</tspan><tspan x="1330.0" dy="26">khuyến nghị hành động</tspan></text><text x="1330.0" y="688" text-anchor="middle" class="body"><tspan x="1330.0" dy="0">luôn nói được vì sao ra mức đó</tspan></text><path d="M430 267 L560 392" class="arrow"/><path d="M430 437 L560 460" class="arrow"/><path d="M430 607 L560 520" class="arrow"/><path d="M430 777 L560 548" class="arrow"/><path d="M1020 410 L1120 295" class="arrow"/><path d="M1020 465 L1120 485" class="arrow"/><path d="M1020 520 L1120 675" class="arrow"/><path d="M1020 405 L1120 295" class="arrow"/><path d="M1020 465 L1085 485" class="arrow"/><path d="M1020 525 L1120 675" class="arrow"/><text x="800" y="800" text-anchor="middle" class="body">AI/LLM chỉ là tín hiệu bổ sung, không phải người ra phán quyết.</text>
+<text x="800" y="826" text-anchor="middle" class="body">Nếu AI unavailable, hệ thống vẫn chấm điểm bằng luật + uy tín + cộng đồng; khi cần có thể đánh dấu degraded.</text>
+</svg>
