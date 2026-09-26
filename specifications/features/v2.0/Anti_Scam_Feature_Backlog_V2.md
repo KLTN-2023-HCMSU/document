@@ -7,9 +7,9 @@
 
 ## 1. Cách dùng backlog
 
-- Tổng cộng **422 feature** sau khi rebase V2; `P0=161`, `P1=136`, `P2=125`.
+- Tổng cộng **422 feature** sau khi rebase V2; `P0=164`, `P1=135`, `P2=123`.
 - `P0` = MVP bắt buộc; `P1` = nên có nếu kịp; `P2` = mở rộng/hướng phát triển.
-- Action traceability hiện tại: `KEEP=261`, `MODIFY=70`, `ADD=54`, `FUTURE_SCOPE=37`.
+- Action traceability hiện tại: `KEEP=259`, `MODIFY=72`, `ADD=54`, `FUTURE_SCOPE=37`.
 - `KEEP` = semantics cũ vẫn phù hợp; `MODIFY` = giữ ý tưởng nhưng contract/ownership/runtime đã đổi; `ADD` = bổ sung do Architecture/Module Spec hiện tại yêu cầu; `FUTURE_SCOPE` = không thuộc MVP.
 - Khi backlog mâu thuẫn với Architecture V3.3 hoặc Modules Specification V1.3, **hai tài liệu đó thắng**.
 - Guest được phép scan URL/Text/Phone/Bank/QR mà không bắt buộc account; persistent history và account follow-up chỉ dành cho authenticated user.
@@ -17,6 +17,7 @@
 ### Những thay đổi quan trọng của V2 so với danh sách cũ
 
 - Rebase toàn bộ backlog từ 48 nhóm theo người sang **14 module M01–M14** theo vertical ownership.
+- Phân công lại ngày 26/09: trả **Platform Infrastructure/CI/CD (M13) về Khải** theo ownership ban đầu; điều chỉnh M04/M07/M14 để workload vẫn cân bằng và giữ dependency nội bộ tối đa.
 - V2 hiện dùng tầng **Module → Work Package → Feature/Acceptance Criteria → implementation subtask**; không dùng từng dòng `Fxxx` như một task sprint độc lập.
 - Chốt M01: Local + Google OIDC, email/password OTP challenge, **JWT access token ngắn hạn + opaque rotating refresh token + server-side `auth_sessions`**, refresh-token reuse detection và session revoke.
 - Bỏ `username` khỏi MVP; profile dùng `email/fullName/displayName/dateOfBirth/avatarUrl/emailVerified`.
@@ -41,26 +42,28 @@
 | **M10** | Notification & User Follow-up | End-to-End Feature / Shared Delivery Capability | User, Admin; internal producers M01/M06/M07/M12/M14 | 18 | 4 | 10 | 4 |
 | **M11** | AI/ML Inference | Shared Capability | M02, M03 | 20 | 7 | 7 | 6 |
 | **M12** | Shared Scan Platform | Shared Platform | M02–M06; phối hợp M08–M11/M14 | 19 | 18 | 1 | 0 |
-| **M13** | Platform Infrastructure | Infrastructure | Toàn hệ thống | 35 | 15 | 12 | 8 |
+| **M13** | Platform Infrastructure | Infrastructure | Toàn hệ thống | 35 | 18 | 11 | 6 |
 | **M14** | Audit & Observability | Shared Platform / Admin Feature | Admin, Internal Operations | 11 | 5 | 4 | 2 |
 | **FUTURE** | Product Extensions ngoài M01–M14 | Future Scope | User/Admin/API Client tương lai | 33 | 0 | 0 | 33 |
 
-## 2.1. Phân công 4 thành viên — cân bằng và độc lập theo Work Package
+## 2.1. Phân công 4 thành viên — cân bằng, độc lập và ưu tiên hạ tầng sớm
 
-Vẫn giữ **revision V2**. `M01–M14` là boundary kiến trúc; **Work Package (WP)** mới là đơn vị giao việc và theo dõi tiến độ. Mỗi WP có một owner duy nhất, có output kiểm thử được và có mock/fixture để owner không phải chờ implementation của người khác.
+Vẫn giữ **revision V2**. `M01–M14` là boundary kiến trúc; **Work Package (WP)** là đơn vị giao việc và theo dõi tiến độ. Phân công này ưu tiên thứ tự: **dependency/unblock → MVP criticality → khả năng chạy song song → cân workload**.
 
-> **Quy ước kích thước:** một WP nên hoàn thành trong khoảng **2–5 ngày làm việc**. Nếu implementation thực tế lớn hơn, owner được tách thành implementation subtask bên trong WP nhưng không đổi contract, owner hay feature mapping.
+> **Thay đổi ownership quan trọng:** Khải nhận lại **M13 Platform Infrastructure**, bao gồm local runtime, secrets, CI, CD, migration, topology và runtime operations. CI baseline phải có ngay từ B0; CD MVP phải hoàn thành trước cửa sổ release 30/10/2026.
 
-Để cân bằng tương đối, tài liệu vẫn dùng **Workload Index = 3×P0 + 2×P1 + P2**. Chỉ số này dùng để so phạm vi, không phải giờ công/story point.
+> **Quy ước kích thước:** một WP thường tương đương khoảng **2–5 ngày làm việc**; WP hạ tầng có thể chạy xuyên 1–2 tuần nhưng phải có milestone P0 rõ ràng. Implementation subtask chỉ dùng bên trong WP, không phá ownership.
+
+Workload Index = `3×P0 + 2×P1 + P2`; dùng để cân phạm vi, không phải giờ công/story point.
 
 | Thành viên | Workstream | Module sở hữu | WP M01–M14 | Feature M01–M14 | P0 | P1 | P2 | Workload | Future WP | Tổng feature kể cả Future | Workload kể cả Future |
 |---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| **Hùng** | Identity, Delivery & Runtime | M01, M10, M13 | 17 | 94 | 41 | 35 | 18 | **211** | 2 | 103 | **220** |
-| **Khải** | Detection & Reputation Inputs | M02, M04, M07 | 15 | 100 | 40 | 35 | 25 | **215** | 2 | 109 | **224** |
-| **Kiên** | Decision Core & Governance | M08, M09, M12, M14 | 17 | 96 | 41 | 33 | 22 | **211** | 2 | 104 | **219** |
-| **Thắng** | Content, QR, Result & AI | M03, M05, M06, M11 | 18 | 99 | 39 | 33 | 27 | **210** | 2 | 106 | **217** |
+| **Hùng** | Identity, Community, Notification & Audit | M01, M07, M10, M14 | 18 | 96 | 40 | 36 | 20 | **212** | 2 | 103 | **219** |
+| **Khải** | URL Detection & Platform / CI-CD | M02, M13 | 14 | 91 | 41 | 31 | 19 | **204** | 3 | 103 | **216** |
+| **Kiên** | Reputation, Risk & Orchestration | M04, M08, M09, M12 | 17 | 103 | 44 | 35 | 24 | **226** | 1 | 109 | **232** |
+| **Thắng** | Content, QR, Result & AI | M03, M05, M06, M11 | 18 | 99 | 39 | 33 | 27 | **210** | 2 | 107 | **218** |
 
-**Độ lệch M01–M14:** workload `210–215`, P0 `39–41`, feature `94–100`. **Kể cả Future đã assign:** workload `217–224`, feature `103–109`; mỗi người có đúng `2` Future WP. Không còn feature nào chưa có owner hiện tại.
+**Độ lệch M01–M14:** workload `204–226`, P0 `39–44`, feature `91–103`. Đây là mức cân bằng tốt hơn nếu ưu tiên giữ module trọn vẹn và giảm cross-owner dependency. **Kể cả Future đã assign:** workload `216–232`, feature `103–109`. Không còn feature nào chưa có owner hiện tại.
 
 ### 2.2. Cấu trúc backlog để không xé task quá nhỏ
 
@@ -94,12 +97,13 @@ Implementation subtasks (tạo khi vào sprint nếu cần)
 | `H-WP09` | **Hùng** | M10 | Notification Delivery Reliability | M10-F003, M10-F009, M10-F017 | 0 | 3 | 0 | 6 | InMemory/Console providers + MockNotificationPort + notification event fixtures |
 | `H-WP10` | **Hùng** | M10 | Notification Contract, Routing & Channel Abstraction | M10-F008, M10-F010, M10-F011, M10-F012 | 3 | 1 | 0 | 11 | InMemory/Console providers + MockNotificationPort + notification event fixtures |
 | `H-WP11` | **Hùng** | M10 | Notification Endpoints, Preferences, Templates & Secret Safety | M10-F013, M10-F014, M10-F015, M10-F016, M10-F018 | 1 | 3 | 1 | 10 | InMemory/Console providers + MockNotificationPort + notification event fixtures |
-| `H-WP12` | **Hùng** | M13 | Data Privacy & Secret Baseline | M13-F001, M13-F002, M13-F005, M13-F035 | 4 | 0 | 0 | 12 | shared local compose + env templates + service test doubles; no business logic ownership |
-| `H-WP13` | **Hùng** | M13 | Local Runtime, Containers & Service Readiness | M13-F003, M13-F004, M13-F006, M13-F007, M13-F008, M13-F009, M13-F010, M13-F011 | 3 | 4 | 1 | 18 | shared local compose + env templates + service test doubles; no business logic ownership |
-| `H-WP14` | **Hùng** | M13 | CI/CD & Dependency Quality Gates | M13-F012, M13-F013, M13-F014, M13-F015, M13-F016, M13-F017, M13-F020 | 2 | 4 | 1 | 15 | shared local compose + env templates + service test doubles; no business logic ownership |
-| `H-WP15` | **Hùng** | M13 | Runtime Metrics & Alerting | M13-F018, M13-F019 | 0 | 0 | 2 | 2 | shared local compose + env templates + service test doubles; no business logic ownership |
-| `H-WP16` | **Hùng** | M13 | Accessibility, i18n & Mobile Entry Surfaces | M13-F021, M13-F022, M13-F023, M13-F024, M13-F025, M13-F026, M13-F027, M13-F028, M13-F029 | 1 | 4 | 4 | 15 | shared local compose + env templates + service test doubles; no business logic ownership |
-| `H-WP17` | **Hùng** | M13 | Core Infrastructure Topology, Storage & Network Boundaries | M13-F030, M13-F031, M13-F032, M13-F033, M13-F034 | 5 | 0 | 0 | 15 | shared local compose + env templates + service test doubles; no business logic ownership |
+| `H-WP12` | **Hùng** | M07 | Community Report Submission & Evidence | M07-F001, M07-F002, M07-F003, M07-F004, M07-F005, M07-F006, M07-F007, M07-F008 | 3 | 3 | 2 | 17 | Seed report fixtures + MockThreatQuery + MockNotificationPort + InMemoryAuditPort |
+| `H-WP13` | **Hùng** | M07 | Moderation Queue & Review Workflow | M07-F009, M07-F010, M07-F011, M07-F012, M07-F013, M07-F014, M07-F015, M07-F016, M07-F017 | 4 | 3 | 2 | 20 | Seed report fixtures + MockThreatQuery + MockNotificationPort + InMemoryAuditPort |
+| `H-WP14` | **Hùng** | M07 | Reporter Reputation & Abuse Controls | M07-F018, M07-F019, M07-F020, M07-F021, M07-F022, M07-F023, M07-F024 | 0 | 3 | 4 | 10 | Seed report fixtures + MockThreatQuery + MockNotificationPort + InMemoryAuditPort |
+| `H-WP15` | **Hùng** | M07 | Verified Report → Threat/Reputation Signal Bridge | M07-F025, M07-F026 | 2 | 0 | 0 | 6 | Seed report fixtures + MockThreatQuery + MockNotificationPort + InMemoryAuditPort |
+| `H-WP16` | **Hùng** | M14 | Security & Business Audit Capture | M14-F001, M14-F002, M14-F003, M14-F011 | 4 | 0 | 0 | 12 | InMemoryAuditPort + mock admin/security events + correlation fixtures |
+| `H-WP17` | **Hùng** | M14 | Cross-Pipeline Correlation & Failure Trace | M14-F008, M14-F009 | 1 | 1 | 0 | 5 | InMemoryAuditPort + mock admin/security events + correlation fixtures |
+| `H-WP18` | **Hùng** | M14 | Audit Query, Operations UI & Investigation | M14-F004, M14-F005, M14-F006, M14-F007, M14-F010 | 0 | 3 | 2 | 8 | InMemoryAuditPort + mock admin/security events + correlation fixtures |
 | `K-WP01` | **Khải** | M02 | URL Intake, Normalization, Cache & Basic Signals | M02-F001, M02-F002, M02-F003, M02-F004, M02-F005, M02-F006, M02-F007, M02-F008 | 5 | 2 | 1 | 20 | FakeMessageBus + MockThreatQuery + RiskResult/worker fixtures; no direct DB/core call from worker |
 | `K-WP02` | **Khải** | M02 | Safe Fetch & SSRF Guard | M02-F009, M02-F010, M02-F011, M02-F012, M02-F013, M02-F014, M02-F015, M02-F016 | 5 | 2 | 1 | 20 | FakeMessageBus + MockThreatQuery + RiskResult/worker fixtures; no direct DB/core call from worker |
 | `K-WP03` | **Khải** | M02 | Redirect Chain Analysis | M02-F017, M02-F018, M02-F019, M02-F020, M02-F021, M02-F022, M02-F023 | 2 | 3 | 2 | 14 | FakeMessageBus + MockThreatQuery + RiskResult/worker fixtures; no direct DB/core call from worker |
@@ -108,13 +112,12 @@ Implementation subtasks (tạo khi vào sprint nếu cần)
 | `K-WP06` | **Khải** | M02 | Brand Impersonation & Typosquatting Detection | M02-F039, M02-F040, M02-F041, M02-F042, M02-F043, M02-F044, M02-F045 | 2 | 3 | 2 | 14 | FakeMessageBus + MockThreatQuery + RiskResult/worker fixtures; no direct DB/core call from worker |
 | `K-WP07` | **Khải** | M02 | Web Evidence Capture & Retention | M02-F046, M02-F047, M02-F048, M02-F049, M02-F050, M02-F051, M02-F052 | 0 | 4 | 3 | 11 | FakeMessageBus + MockThreatQuery + RiskResult/worker fixtures; no direct DB/core call from worker |
 | `K-WP08` | **Khải** | M02 | URL Worker Contract & Reputation Enrichment Boundary | M02-F053, M02-F054, M02-F055, M02-F056 | 4 | 0 | 0 | 12 | FakeMessageBus + MockThreatQuery + RiskResult/worker fixtures; no direct DB/core call from worker |
-| `K-WP09` | **Khải** | M04 | Phone Reputation Check | M04-F001, M04-F002, M04-F003, M04-F004, M04-F005, M04-F006, M04-F007, M04-F008 | 3 | 3 | 2 | 17 | MockThreatQuery + entity fixtures + fake scan-platform adapter |
-| `K-WP10` | **Khải** | M04 | Bank Account Reputation Check | M04-F009, M04-F010, M04-F011, M04-F012, M04-F013, M04-F014, M04-F015, M04-F016 | 3 | 3 | 2 | 17 | MockThreatQuery + entity fixtures + fake scan-platform adapter |
-| `K-WP11` | **Khải** | M04 | Unified Entity Scan Contract & NO_DATA Semantics | M04-F017, M04-F018 | 2 | 0 | 0 | 6 | MockThreatQuery + entity fixtures + fake scan-platform adapter |
-| `K-WP12` | **Khải** | M07 | Community Report Submission & Evidence | M07-F001, M07-F002, M07-F003, M07-F004, M07-F005, M07-F006, M07-F007, M07-F008 | 3 | 3 | 2 | 17 | Seed report fixtures + MockThreatQuery + MockNotificationPort + InMemoryAuditPort |
-| `K-WP13` | **Khải** | M07 | Moderation Queue & Review Workflow | M07-F009, M07-F010, M07-F011, M07-F012, M07-F013, M07-F014, M07-F015, M07-F016, M07-F017 | 4 | 3 | 2 | 20 | Seed report fixtures + MockThreatQuery + MockNotificationPort + InMemoryAuditPort |
-| `K-WP14` | **Khải** | M07 | Reporter Reputation & Abuse Controls | M07-F018, M07-F019, M07-F020, M07-F021, M07-F022, M07-F023, M07-F024 | 0 | 3 | 4 | 10 | Seed report fixtures + MockThreatQuery + MockNotificationPort + InMemoryAuditPort |
-| `K-WP15` | **Khải** | M07 | Verified Report → Threat/Reputation Signal Bridge | M07-F025, M07-F026 | 2 | 0 | 0 | 6 | Seed report fixtures + MockThreatQuery + MockNotificationPort + InMemoryAuditPort |
+| `K-WP09` | **Khải** | M13 | Data Privacy & Secret Baseline | M13-F001, M13-F002, M13-F005, M13-F035 | 4 | 0 | 0 | 12 | shared local compose + env/secret templates + CI/CD fixtures; no business logic ownership |
+| `K-WP10` | **Khải** | M13 | Platform Runtime, Containers, Core Topology & Readiness | M13-F003, M13-F004, M13-F006, M13-F008, M13-F030, M13-F031, M13-F032, M13-F033, M13-F034 | 8 | 1 | 0 | 26 | shared local compose + env/secret templates + CI/CD fixtures; no business logic ownership |
+| `K-WP11` | **Khải** | M13 | CI Baseline & Quality Gates | M13-F012, M13-F013, M13-F014, M13-F015, M13-F017 | 2 | 3 | 0 | 12 | shared local compose + env/secret templates + CI/CD fixtures; no business logic ownership |
+| `K-WP12` | **Khải** | M13 | MVP CD, Migration & Release Automation | M13-F007, M13-F009, M13-F011, M13-F020 | 3 | 1 | 0 | 11 | shared local compose + env/secret templates + CI/CD fixtures; no business logic ownership |
+| `K-WP13` | **Khải** | M13 | Data Ops, Structured Logging, Metrics & Alerting | M13-F010, M13-F016, M13-F018, M13-F019 | 0 | 2 | 2 | 6 | shared local compose + env/secret templates + CI/CD fixtures; no business logic ownership |
+| `K-WP14` | **Khải** | M13 | Accessibility, i18n & Mobile Entry Surfaces | M13-F021, M13-F022, M13-F023, M13-F024, M13-F025, M13-F026, M13-F027, M13-F028, M13-F029 | 1 | 4 | 4 | 15 | shared local compose + env/secret templates + CI/CD fixtures; no business logic ownership |
 | `I-WP01` | **Kiên** | M08 | Threat Feed Ingestion & Dataset Lifecycle | M08-F001, M08-F002, M08-F003, M08-F004, M08-F005, M08-F006, M08-F007 | 0 | 4 | 3 | 11 | sample threat feeds + in-memory repository/cache adapter; core-only ThreatQuery contract |
 | `I-WP02` | **Kiên** | M08 | Whitelist / Blacklist Administration | M08-F008, M08-F009, M08-F010, M08-F011, M08-F012, M08-F013, M08-F014, M08-F015 | 2 | 4 | 2 | 16 | sample threat feeds + in-memory repository/cache adapter; core-only ThreatQuery contract |
 | `I-WP03` | **Kiên** | M08 | Risk Entity Registry & Evidence Consolidation | M08-F016, M08-F017, M08-F018, M08-F019, M08-F020, M08-F021, M08-F022, M08-F023, M08-F024 | 3 | 3 | 3 | 18 | sample threat feeds + in-memory repository/cache adapter; core-only ThreatQuery contract |
@@ -129,9 +132,9 @@ Implementation subtasks (tạo khi vào sprint nếu cần)
 | `I-WP12` | **Kiên** | M12 | Scan Lifecycle, Event Envelope, Retry & Idempotency | M12-F005, M12-F006, M12-F007, M12-F008, M12-F012 | 5 | 0 | 0 | 15 | FakeMessageBus + worker/AI/nested-scan/race fixtures + in-memory repositories |
 | `I-WP13` | **Kiên** | M12 | Nested Scan Orchestration & Derived Indicators | M12-F009, M12-F010, M12-F011, M12-F017 | 4 | 0 | 0 | 12 | FakeMessageBus + worker/AI/nested-scan/race fixtures + in-memory repositories |
 | `I-WP14` | **Kiên** | M12 | AI Task Barrier, Deadline & Race Handling | M12-F013, M12-F014, M12-F015, M12-F016 | 4 | 0 | 0 | 12 | FakeMessageBus + worker/AI/nested-scan/race fixtures + in-memory repositories |
-| `I-WP15` | **Kiên** | M14 | Security & Business Audit Capture | M14-F001, M14-F002, M14-F003, M14-F011 | 4 | 0 | 0 | 12 | InMemoryAuditPort + mock admin/security events + correlation fixtures |
-| `I-WP16` | **Kiên** | M14 | Cross-Pipeline Correlation & Failure Trace | M14-F008, M14-F009 | 1 | 1 | 0 | 5 | InMemoryAuditPort + mock admin/security events + correlation fixtures |
-| `I-WP17` | **Kiên** | M14 | Audit Query, Operations UI & Investigation | M14-F004, M14-F005, M14-F006, M14-F007, M14-F010 | 0 | 3 | 2 | 8 | InMemoryAuditPort + mock admin/security events + correlation fixtures |
+| `I-WP15` | **Kiên** | M04 | Phone Reputation Check | M04-F001, M04-F002, M04-F003, M04-F004, M04-F005, M04-F006, M04-F007, M04-F008 | 3 | 3 | 2 | 17 | MockThreatQuery + entity fixtures + fake scan-platform adapter |
+| `I-WP16` | **Kiên** | M04 | Bank Account Reputation Check | M04-F009, M04-F010, M04-F011, M04-F012, M04-F013, M04-F014, M04-F015, M04-F016 | 3 | 3 | 2 | 17 | MockThreatQuery + entity fixtures + fake scan-platform adapter |
+| `I-WP17` | **Kiên** | M04 | Unified Entity Scan Contract & NO_DATA Semantics | M04-F017, M04-F018 | 2 | 0 | 0 | 6 | MockThreatQuery + entity fixtures + fake scan-platform adapter |
 | `T-WP01` | **Thắng** | M03 | Vietnamese Text Normalization & Evasion Handling | M03-F001, M03-F002, M03-F003, M03-F004, M03-F005, M03-F006, M03-F007 | 3 | 2 | 2 | 15 | FakeMessageBus + text/AI/derived-indicator fixtures + MockRiskEvaluationPort |
 | `T-WP02` | **Thắng** | M03 | Async Text Scan, Scam Patterns & User Result UX | M03-F008, M03-F009, M03-F010, M03-F011, M03-F012, M03-F013, M03-F014, M03-F015 | 4 | 2 | 2 | 18 | FakeMessageBus + text/AI/derived-indicator fixtures + MockRiskEvaluationPort |
 | `T-WP03` | **Thắng** | M03 | Entity Extraction from Text | M03-F016, M03-F017, M03-F018, M03-F019, M03-F020, M03-F021, M03-F022, M03-F023 | 5 | 2 | 1 | 20 | FakeMessageBus + text/AI/derived-indicator fixtures + MockRiskEvaluationPort |
@@ -151,40 +154,47 @@ Implementation subtasks (tạo khi vào sprint nếu cần)
 | `T-WP17` | **Thắng** | M11 | AI Safety, Prompt/Output Guardrails & Cache Options | M11-F007, M11-F008 | 0 | 0 | 2 | 2 | FakeMessageBus + ai request/result fixtures + mock provider adapters |
 | `T-WP18` | **Thắng** | M11 | AI Evaluation Dataset, Metrics & Calibration | M11-F010, M11-F011, M11-F012, M11-F013, M11-F014, M11-F015, M11-F016 | 1 | 3 | 3 | 12 | FakeMessageBus + ai request/result fixtures + mock provider adapters |
 | `H-FWP01` | **Hùng** | FUTURE | Future Entitlements, Plans & Subscription Boundary | FUTURE-F025, FUTURE-F026, FUTURE-F027, FUTURE-F028 | 0 | 0 | 4 | 4 | Build against current public ports/fixtures; must not change MVP contracts until promoted |
-| `H-FWP02` | **Hùng** | FUTURE | Future Usage, Credit Ledger & API Credentials | FUTURE-F029, FUTURE-F030, FUTURE-F031, FUTURE-F032, FUTURE-F033 | 0 | 0 | 5 | 5 | Build against current public ports/fixtures; must not change MVP contracts until promoted |
+| `H-FWP02` | **Hùng** | FUTURE | Community Contribution Gamification | FUTURE-F021, FUTURE-F022, FUTURE-F023 | 0 | 0 | 3 | 3 | Build against current public ports/fixtures; must not change MVP contracts until promoted |
 | `K-FWP01` | **Khải** | FUTURE | Browser Extension Protection Surface | FUTURE-F001, FUTURE-F002, FUTURE-F003, FUTURE-F004, FUTURE-F005, FUTURE-F006 | 0 | 0 | 6 | 6 | Build against current public ports/fixtures; must not change MVP contracts until promoted |
-| `K-FWP02` | **Khải** | FUTURE | Community Contribution Gamification | FUTURE-F021, FUTURE-F022, FUTURE-F023 | 0 | 0 | 3 | 3 | Build against current public ports/fixtures; must not change MVP contracts until promoted |
+| `K-FWP02` | **Khải** | FUTURE | Future Usage, Credit Ledger & API Credentials | FUTURE-F029, FUTURE-F030, FUTURE-F031, FUTURE-F032, FUTURE-F033 | 0 | 0 | 5 | 5 | Build against current public ports/fixtures; must not change MVP contracts until promoted |
+| `K-FWP03` | **Khải** | FUTURE | Social Sharing for Learning/Engagement | FUTURE-F024 | 0 | 0 | 1 | 1 | Build against current public ports/fixtures; must not change MVP contracts until promoted |
 | `I-FWP01` | **Kiên** | FUTURE | Knowledge Library & Editorial Workflow | FUTURE-F007, FUTURE-F008, FUTURE-F009, FUTURE-F010, FUTURE-F011, FUTURE-F012 | 0 | 0 | 6 | 6 | Build against current public ports/fixtures; must not change MVP contracts until promoted |
-| `I-FWP02` | **Kiên** | FUTURE | Anti-Scam Quiz & Learning Evaluation | FUTURE-F019, FUTURE-F020 | 0 | 0 | 2 | 2 | Build against current public ports/fixtures; must not change MVP contracts until promoted |
 | `T-FWP01` | **Thắng** | FUTURE | Scam Q&A Assistant | FUTURE-F013, FUTURE-F014, FUTURE-F015, FUTURE-F016, FUTURE-F017, FUTURE-F018 | 0 | 0 | 6 | 6 | Build against current public ports/fixtures; must not change MVP contracts until promoted |
-| `T-FWP02` | **Thắng** | FUTURE | Social Sharing for Learning/Engagement | FUTURE-F024 | 0 | 0 | 1 | 1 | Build against current public ports/fixtures; must not change MVP contracts until promoted |
+| `T-FWP02` | **Thắng** | FUTURE | Anti-Scam Quiz & Learning Evaluation | FUTURE-F019, FUTURE-F020 | 0 | 0 | 2 | 2 | Build against current public ports/fixtures; must not change MVP contracts until promoted |
 
 ### 2.4. Quy tắc để 4 người phát triển độc lập tối đa
 
 1. **Freeze contract trước implementation.** Chốt `AccessContext`, scan request/response, `ScanJobEnvelope`, `WorkerAnalysisResult`, `DerivedIndicator`, `AiTask/AiResult`, `RiskEvaluationPort`, `RiskResult`, `NotificationPort`, event envelope và routing key trước khi code song song.
 2. **Mock-first bắt buộc.** Dependency cross-owner phải có fake/in-memory adapter hoặc fixture ngay từ đầu; Module Spec V1.3 mục 15 là nguồn contract chính.
-3. **M12 không được trở thành blocker.** Khải/Thắng phát triển worker bằng `FakeMessageBus` + fixtures; Kiên phát triển orchestration bằng worker/AI fixtures; Hùng phát triển auth/notification bằng fake ports.
-4. **M13 cung cấp local stack chung nhưng không giữ business logic.** Mọi module vẫn phải test được với test double khi PostgreSQL/Redis/RabbitMQ/MinIO thật chưa sẵn sàng.
-5. **Contract test trước integration test.** Chỉ nối môi trường thật khi producer và consumer cùng pass fixture/contract test.
-6. **Cross-owner change cần review contract.** Thay đổi schema/event/API dùng chung không được merge chỉ trong một workstream.
-7. **Owner giữ vertical scope.** Không tách một WP thành “frontend của A / backend của B”; subtask có thể chia nội bộ nhưng owner chịu trách nhiệm Definition of Done cuối cùng.
+3. **M12 không được trở thành blocker.** Khải/Thắng phát triển worker bằng `FakeMessageBus` + fixtures; Kiên phát triển orchestration bằng worker/AI fixtures; Hùng phát triển auth/community/notification/audit bằng fake ports.
+4. **M13 do Khải sở hữu nhưng không giữ business logic.** Local runtime/CI/CD phải unblock team, còn từng module vẫn test được với test double khi hạ tầng thật chưa sẵn sàng.
+5. **CI/CD là enabling capability của MVP, không phải feature sau MVP.** CI P0 phải chạy từ B0; CD P0 phải hoàn thành trước 20/10 để còn thời gian regression/release rehearsal trước 30/10.
+6. **Contract test trước integration test.** Chỉ nối môi trường thật khi producer và consumer cùng pass fixture/contract test.
+7. **Cross-owner change cần review contract.** Thay đổi schema/event/API dùng chung không được merge chỉ trong một workstream.
+8. **Owner giữ vertical scope.** Không tách một WP thành “frontend của A / backend của B”; subtask có thể chia nội bộ nhưng owner chịu trách nhiệm Definition of Done cuối cùng.
 
 ### 2.5. Integration seams giữa các thành viên
 
 | Producer / Owner | Contract seam | Consumer / Owner | Cách dev độc lập |
 |---|---|---|---|
-| Hùng / M01 | `AccessContext` | Kiên / M12, scan modules | `FakeAccessContextResolver`, guest/free fixtures |
+| Hùng / M01 | `AccessContext`, auth/session contract | Kiên / M12 và scan modules | `FakeAccessContextResolver`, guest/free fixtures |
+| Hùng / M07 | verified-report event / moderated evidence | Kiên / M08/M04 | seeded verified-report fixtures; không đọc repository của M07 |
 | Hùng / M10 | `NotificationPort` + `notification.requested` | M01/M06/M07/M12/M14 | `MockNotificationPort`, seeded events |
-| Khải / M02/M04/M07 | worker result / reputation / report events | Kiên / M08/M09/M12 | `FakeMessageBus`, `MockThreatQuery`, verified-report fixtures |
-| Kiên / M08 | `ThreatQuery` / `ReputationContext` | Khải/Thắng scan modules | `MockThreatQuery`, reputation fixtures |
+| Hùng / M14 | `AuditPort` / audit event | toàn bộ module | `InMemoryAuditPort`; producer không ghi audit table trực tiếp |
+| Khải / M02 | URL worker result / derived indicators | Kiên / M12/M08/M09 | `FakeMessageBus`, worker/result fixtures |
+| Khải / M13 | runtime, CI/CD, queues, storage, secret/config topology | toàn team | compose/env templates + CI reusable workflow; không chứa business logic |
+| Kiên / M04/M08 | entity/reputation contract, `ThreatQuery`, `ReputationContext` | Khải/Thắng scan modules, M12 | `MockThreatQuery`, reputation fixtures |
 | Kiên / M09 | `RiskEvaluationPort` | M02–M06 / M12 | deterministic signal fixtures + `MockRiskEvaluationPort` |
 | Kiên / M12 | scan lifecycle + job/result event contracts | Khải/Thắng workers, Hùng/M10 | fake scan-platform adapter + worker/AI fixtures |
 | Thắng / M11 | AI task/result contract | Kiên / M12/M09; M02/M03 producer | `ai-*-request/result.json`, mock AI result |
-| Hùng / M13 | runtime/config topology | toàn team | local compose + test doubles; không chờ production infra |
+
 
 ## 3. Contract hiện hành phải phản ánh trong backlog
 
 ### 3.1. Release scope
+
+> **MVP release gate 30/10/2026:** CI P0 (`M13-F012`, `M13-F013`) phải hoạt động từ đầu chu kỳ; CD P0 (`M13-F009`, `M13-F011`, `M13-F020`) phải hoàn tất trước 20/10 để còn tối thiểu một tuần regression/release rehearsal.
+
 
 - Guest: scan public inputs, guest quota, không có persistent account history.
 - Authenticated Free: persistent history/profile/session/quota/follow-up.
@@ -300,7 +310,7 @@ QR:     child scores + QR-specific rules
 > **Type:** End-to-End Feature  
 > **Actor:** Guest, User, Admin  
 > **Dependencies:** M10; M13; M14  
-> **Owner:** Hùng — Identity, Delivery & Runtime.
+> **Owner:** Hùng — Identity, Community, Notification & Audit.
 
 **Mục đích:** Cung cấp Guest/Local/Google identity, JWT access token + rotating opaque refresh token + server-side auth session, RBAC, profile và AccessContext thống nhất.
 
@@ -355,7 +365,7 @@ QR:     child scores + QR-specific rules
 > **Type:** End-to-End Feature  
 > **Actor:** Guest, User  
 > **Dependencies:** M08; M09; M11 optional; M12; M13; M14  
-> **Owner:** Khải — Detection & Reputation Inputs.
+> **Owner:** Khải — URL Detection & Platform / CI-CD.
 
 **Mục đích:** Quét URL/website bằng lexical, DNS/TLS, redirect, HTML/Form, reputation và optional AI; worker chỉ trả signal, Spring Boot mới tạo final RiskResult.
 
@@ -417,7 +427,7 @@ QR:     child scores + QR-specific rules
 | `M02-F052` | P2 | `KEEP` | `K-WP07` | **Khải** | So sánh ảnh chụp với trang thật của thương hiệu | `K09-07` | Khải |
 | `M02-F053` | P0 | `KEEP` | `K-WP08` | **Khải** | Màn hình nhập liệu 4 tab: URL, văn bản, số điện thoại, số tài khoản | `T11-02` | Thắng |
 | `M02-F054` | P0 | `ADD` | `K-WP08` | **Khải** | URL Worker chỉ trả `AnalysisSignal[]`, `DerivedIndicator[]` và `pendingAiTasks[]`; Spring Boot/M12 mới aggregate, gọi M09 và persist final `RiskResult`. | `ARCH-V3.2-01` | — |
-| `M02-F055` | P0 | `ADD` | `K-WP08` | **Khải** | Spring Boot core pre-enrich known URL/domain reputation trước khi publish job; redirect/domain mới được worker trả về `DerivedIndicator` với `handling=REPUTATION_ONLY\\|CHILD_SCAN`, worker không gọi ngược core. | `ARCH-V3.2-02` | — |
+| `M02-F055` | P0 | `ADD` | `K-WP08` | **Khải** | Spring Boot core pre-enrich known URL/domain reputation trước khi publish job; redirect/domain mới được worker trả về `DerivedIndicator` với `handling=REPUTATION_ONLY` hoặc `CHILD_SCAN`, worker không gọi ngược core. | `ARCH-V3.2-02` | — |
 | `M02-F056` | P0 | `ADD` | `K-WP08` | **Khải** | Deferred reputation chạy trong core qua `ThreatQuery`: Redis→PostgreSQL, timeout ban đầu 500 ms; unavailable → `REPUTATION_UNAVAILABLE` nhưng scan tiếp tục degraded khi phù hợp. | `ARCH-V3.2-03` | — |
 
 ## M03. Text & Transaction Scam Analysis
@@ -478,7 +488,7 @@ QR:     child scores + QR-specific rules
 | `M03-F043` | P2 | `KEEP` | `T-WP06` | **Thắng** | Dòng thời gian trực quan của hội thoại kèm điểm rủi ro theo từng bước | `R08-06` | Kiên |
 | `M03-F044` | P0 | `KEEP` | `T-WP07` | **Thắng** | **Không** đọc SMS, notification, call log, danh bạ hay clipboard ngầm; **không** dùng Accessibility Service | `T11-05` | Thắng |
 | `M03-F045` | P1 | `KEEP` | `T-WP07` | **Thắng** | Dán nhanh từ clipboard khi ứng dụng đang mở (do người dùng chủ động bấm) | `T11-07` | Thắng |
-| `M03-F046` | P0 | `ADD` | `T-WP07` | **Thắng** | `TEXT.contentType` thống nhất `MESSAGE \\| TRANSACTION_POST`; không tạo endpoint riêng cho transaction post. | `ARCH-04 (Architecture V3.2)` | — |
+| `M03-F046` | P0 | `ADD` | `T-WP07` | **Thắng** | `TEXT.contentType` thống nhất `MESSAGE` hoặc `TRANSACTION_POST`; không tạo endpoint riêng cho transaction post. | `ARCH-04 (Architecture V3.2)` | — |
 | `M03-F047` | P0 | `ADD` | `T-WP07` | **Thắng** | Text Worker trả `DerivedIndicator[]` cho URL/Phone/Bank và `pendingAiTasks[]`; M12 Orchestrator quyết định `REPUTATION_ONLY`/`CHILD_SCAN`, tạo child scans và chờ AI task, worker không gọi worker/core trực tiếp. | `ARCH-V3.2-04` | — |
 | `M03-F048` | P0 | `ADD` | `T-WP07` | **Thắng** | Phát hiện yêu cầu/thu thập CCCD như `SENSITIVE_IDENTITY_REQUEST`/sensitive-data signal; không có standalone CCCD lookup trong MVP. | `ARCH-06 (Architecture V3.2)` | — |
 
@@ -487,7 +497,7 @@ QR:     child scores + QR-specific rules
 > **Type:** End-to-End Feature  
 > **Actor:** Guest, User  
 > **Dependencies:** M08; M09; M12; M13; M14  
-> **Owner:** Khải — Detection & Reputation Inputs.
+> **Owner:** Kiên — Reputation, Risk & Orchestration.
 
 **Mục đích:** Kiểm tra reputation của số điện thoại và tài khoản ngân hàng; worker dùng reputationContext do core cấp và không tự đọc DB/cache.
 
@@ -495,24 +505,24 @@ QR:     child scores + QR-specific rules
 
 | ID | Priority | Action | Work Package | Owner hiện tại | Feature hiện tại | Legacy/Source | Legacy owner (trace only) |
 |---|---|---|---|---|---|---|---|
-| `M04-F001` | P0 | `MODIFY` | `K-WP09` | **Khải** | `POST /v1/scans/entity` (`entityType=PHONE`), chuẩn hoá về `+84xxxxxxxxx` | `T01-01` | Thắng |
-| `M04-F002` | P0 | `KEEP` | `K-WP09` | **Khải** | Tra `risk_entities` và số lượt bị báo cáo | `T01-02` | Thắng |
-| `M04-F003` | P0 | `KEEP` | `K-WP09` | **Khải** | Tính điểm theo: có trong danh sách đen, số báo cáo, số báo cáo đã xác minh | `T01-03` | Thắng |
-| `M04-F004` | P1 | `KEEP` | `K-WP09` | **Khải** | Suy giảm điểm theo thời gian — báo cáo cũ có trọng số thấp hơn | `T01-04` | Thắng |
-| `M04-F005` | P1 | `MODIFY` | `K-WP09` | **Khải** | Tra uy tín số điện thoại qua core `ThreatQuery` cache-aside: Redis hit, cache miss về PostgreSQL; TTL theo source, mặc định 1 giờ thay vì hard-code theo entity. | `T01-05 + MODSPEC-V1.3` | Thắng |
-| `M04-F006` | P1 | `KEEP` | `K-WP09` | **Khải** | Che số điện thoại khi ghi log và khi hiển thị công khai | `T01-06` | Thắng |
-| `M04-F007` | P2 | `KEEP` | `K-WP09` | **Khải** | Nhận diện đầu số dịch vụ, đầu số quốc tế bất thường | `T01-07` | Thắng |
-| `M04-F008` | P2 | `KEEP` | `K-WP09` | **Khải** | Nhận diện số giả mạo tổng đài ngân hàng | `T01-08` | Thắng |
-| `M04-F009` | P0 | `MODIFY` | `K-WP10` | **Khải** | `POST /v1/scans/entity` (`entityType=BANK_ACCOUNT`), chuẩn hoá số tài khoản và mã ngân hàng | `T02-01` | Thắng |
-| `M04-F010` | P0 | `KEEP` | `K-WP10` | **Khải** | Validate mã ngân hàng theo danh sách ngân hàng Việt Nam | `T02-02` | Thắng |
-| `M04-F011` | P0 | `KEEP` | `K-WP10` | **Khải** | Tra `risk_entities` và các báo cáo liên quan | `T02-03` | Thắng |
-| `M04-F012` | P1 | `MODIFY` | `K-WP10` | **Khải** | Tra uy tín tài khoản ngân hàng qua cùng core `ThreatQuery` cache-aside; Redis chỉ là hot cache, TTL theo source (mặc định 1 giờ), PostgreSQL là source of truth. | `T02-04 + MODSPEC-V1.3` | Thắng |
-| `M04-F013` | P1 | `KEEP` | `K-WP10` | **Khải** | Che số tài khoản khi ghi log (`****1234`) | `T02-05` | Thắng |
-| `M04-F014` | P1 | `KEEP` | `K-WP10` | **Khải** | Cảnh báo khi tên chủ tài khoản không khớp với tên người bán được nhắc tới | `T02-06` | Thắng |
-| `M04-F015` | P2 | `KEEP` | `K-WP10` | **Khải** | Nhóm các báo cáo cùng một số tài khoản để thấy quy mô | `T02-07` | Thắng |
-| `M04-F016` | P2 | `KEEP` | `K-WP10` | **Khải** | Cảnh báo tài khoản xuất hiện trong nhiều vụ khác nhau | `T02-08` | Thắng |
-| `M04-F017` | P0 | `ADD` | `K-WP11` | **Khải** | Phone và Bank dùng chung `POST /v1/scans/entity` + `entityType`; validation/normalization theo strategy. | `ARCH-07 (Architecture V3.2)` | — |
-| `M04-F018` | P0 | `ADD` | `K-WP11` | **Khải** | UI/result phải phân biệt `NO_DATA` với verified-safe; không tìm thấy dữ liệu rủi ro không được diễn giải thành an toàn tuyệt đối. | `ARCH-08 (Architecture V3.2)` | — |
+| `M04-F001` | P0 | `MODIFY` | `I-WP15` | **Kiên** | `POST /v1/scans/entity` (`entityType=PHONE`), chuẩn hoá về `+84xxxxxxxxx` | `T01-01` | Thắng |
+| `M04-F002` | P0 | `KEEP` | `I-WP15` | **Kiên** | Tra `risk_entities` và số lượt bị báo cáo | `T01-02` | Thắng |
+| `M04-F003` | P0 | `KEEP` | `I-WP15` | **Kiên** | Tính điểm theo: có trong danh sách đen, số báo cáo, số báo cáo đã xác minh | `T01-03` | Thắng |
+| `M04-F004` | P1 | `KEEP` | `I-WP15` | **Kiên** | Suy giảm điểm theo thời gian — báo cáo cũ có trọng số thấp hơn | `T01-04` | Thắng |
+| `M04-F005` | P1 | `MODIFY` | `I-WP15` | **Kiên** | Tra uy tín số điện thoại qua core `ThreatQuery` cache-aside: Redis hit, cache miss về PostgreSQL; TTL theo source, mặc định 1 giờ thay vì hard-code theo entity. | `T01-05 + MODSPEC-V1.3` | Thắng |
+| `M04-F006` | P1 | `KEEP` | `I-WP15` | **Kiên** | Che số điện thoại khi ghi log và khi hiển thị công khai | `T01-06` | Thắng |
+| `M04-F007` | P2 | `KEEP` | `I-WP15` | **Kiên** | Nhận diện đầu số dịch vụ, đầu số quốc tế bất thường | `T01-07` | Thắng |
+| `M04-F008` | P2 | `KEEP` | `I-WP15` | **Kiên** | Nhận diện số giả mạo tổng đài ngân hàng | `T01-08` | Thắng |
+| `M04-F009` | P0 | `MODIFY` | `I-WP16` | **Kiên** | `POST /v1/scans/entity` (`entityType=BANK_ACCOUNT`), chuẩn hoá số tài khoản và mã ngân hàng | `T02-01` | Thắng |
+| `M04-F010` | P0 | `KEEP` | `I-WP16` | **Kiên** | Validate mã ngân hàng theo danh sách ngân hàng Việt Nam | `T02-02` | Thắng |
+| `M04-F011` | P0 | `KEEP` | `I-WP16` | **Kiên** | Tra `risk_entities` và các báo cáo liên quan | `T02-03` | Thắng |
+| `M04-F012` | P1 | `MODIFY` | `I-WP16` | **Kiên** | Tra uy tín tài khoản ngân hàng qua cùng core `ThreatQuery` cache-aside; Redis chỉ là hot cache, TTL theo source (mặc định 1 giờ), PostgreSQL là source of truth. | `T02-04 + MODSPEC-V1.3` | Thắng |
+| `M04-F013` | P1 | `KEEP` | `I-WP16` | **Kiên** | Che số tài khoản khi ghi log (`****1234`) | `T02-05` | Thắng |
+| `M04-F014` | P1 | `KEEP` | `I-WP16` | **Kiên** | Cảnh báo khi tên chủ tài khoản không khớp với tên người bán được nhắc tới | `T02-06` | Thắng |
+| `M04-F015` | P2 | `KEEP` | `I-WP16` | **Kiên** | Nhóm các báo cáo cùng một số tài khoản để thấy quy mô | `T02-07` | Thắng |
+| `M04-F016` | P2 | `KEEP` | `I-WP16` | **Kiên** | Cảnh báo tài khoản xuất hiện trong nhiều vụ khác nhau | `T02-08` | Thắng |
+| `M04-F017` | P0 | `ADD` | `I-WP17` | **Kiên** | Phone và Bank dùng chung `POST /v1/scans/entity` + `entityType`; validation/normalization theo strategy. | `ARCH-07 (Architecture V3.2)` | — |
+| `M04-F018` | P0 | `ADD` | `I-WP17` | **Kiên** | UI/result phải phân biệt `NO_DATA` với verified-safe; không tìm thấy dữ liệu rủi ro không được diễn giải thành an toàn tuyệt đối. | `ARCH-08 (Architecture V3.2)` | — |
 
 ## M05. QR / VietQR Scan
 
@@ -578,7 +588,7 @@ QR:     child scores + QR-specific rules
 > **Type:** End-to-End Feature  
 > **Actor:** User, Moderator/Admin  
 > **Dependencies:** M01; M08; M10; M13; M14  
-> **Owner:** Khải — Detection & Reputation Inputs.
+> **Owner:** Hùng — Identity, Community, Notification & Audit.
 
 **Mục đích:** Cho user gửi báo cáo lừa đảo/evidence và moderator/admin duyệt; chỉ report đã xác minh mới có thể trở thành reputation signal.
 
@@ -586,39 +596,39 @@ QR:     child scores + QR-specific rules
 
 | ID | Priority | Action | Work Package | Owner hiện tại | Feature hiện tại | Legacy/Source | Legacy owner (trace only) |
 |---|---|---|---|---|---|---|---|
-| `M07-F001` | P0 | `KEEP` | `K-WP12` | **Khải** | `POST /v1/reports` với loại thực thể, giá trị, mô tả | `T05-01` | Thắng |
-| `M07-F002` | P0 | `KEEP` | `K-WP12` | **Khải** | Rate limit 10 báo cáo / ngày / user | `T05-02` | Thắng |
-| `M07-F003` | P0 | `KEEP` | `K-WP12` | **Khải** | Nút "Gửi báo cáo" ngay trong trang kết quả quét, điền sẵn dữ liệu | `T05-03` | Thắng |
-| `M07-F004` | P1 | `KEEP` | `K-WP12` | **Khải** | Đính kèm file bằng chứng (ảnh chụp màn hình), giới hạn dung lượng và định dạng | `T05-04` | Thắng |
-| `M07-F005` | P1 | `KEEP` | `K-WP12` | **Khải** | Chọn loại lừa đảo theo taxonomy (R03) | `T05-05` | Thắng |
-| `M07-F006` | P1 | `KEEP` | `K-WP12` | **Khải** | Xem trạng thái các báo cáo mình đã gửi | `T05-06` | Thắng |
-| `M07-F007` | P2 | `KEEP` | `K-WP12` | **Khải** | Báo cáo ẩn danh không cần đăng nhập, có CAPTCHA | `T05-07` | Thắng |
-| `M07-F008` | P2 | `KEEP` | `K-WP12` | **Khải** | Cảnh báo trùng lặp khi entity đã được báo cáo | `T05-08` | Thắng |
-| `M07-F009` | P0 | `KEEP` | `K-WP13` | **Khải** | Trạng thái báo cáo: `PENDING`, `UNDER_REVIEW`, `VERIFIED`, `REJECTED`, `NEED_MORE_INFO`, `RESOLVED` | `T06-01` | Thắng |
-| `M07-F010` | P0 | `KEEP` | `K-WP13` | **Khải** | Hàng đợi duyệt cho admin, sắp xếp theo mức độ và thời gian | `T06-02` | Thắng |
-| `M07-F011` | P0 | `KEEP` | `K-WP13` | **Khải** | Duyệt báo cáo → tạo/cập nhật `risk_entities` | `T06-03` | Thắng |
-| `M07-F012` | P0 | `KEEP` | `K-WP13` | **Khải** | Ghi audit log mọi thao tác duyệt | `T06-04` | Thắng |
-| `M07-F013` | P1 | `KEEP` | `K-WP13` | **Khải** | Xem chi tiết báo cáo kèm bằng chứng và kết quả quét liên quan | `T06-05` | Thắng |
-| `M07-F014` | P1 | `KEEP` | `K-WP13` | **Khải** | Duyệt hàng loạt các báo cáo cùng một entity | `T06-06` | Thắng |
-| `M07-F015` | P1 | `KEEP` | `K-WP13` | **Khải** | Ghi lý do khi từ chối, gửi thông báo cho người báo cáo | `T06-07` | Thắng |
-| `M07-F016` | P2 | `KEEP` | `K-WP13` | **Khải** | Tự động ưu tiên báo cáo từ người có uy tín cao | `T06-08` | Thắng |
-| `M07-F017` | P2 | `KEEP` | `K-WP13` | **Khải** | Phân công báo cáo cho từng moderator | `T06-09` | Thắng |
-| `M07-F018` | P1 | `KEEP` | `K-WP14` | **Khải** | Tính điểm uy tín dựa trên tỷ lệ báo cáo được duyệt | `T07-01` | Thắng |
-| `M07-F019` | P1 | `KEEP` | `K-WP14` | **Khải** | Hạ uy tín khi báo cáo bị từ chối nhiều lần | `T07-02` | Thắng |
-| `M07-F020` | P1 | `KEEP` | `K-WP14` | **Khải** | Phát hiện báo cáo trùng lặp và báo cáo hàng loạt bất thường | `T07-03` | Thắng |
-| `M07-F021` | P2 | `KEEP` | `K-WP14` | **Khải** | Người uy tín cao được duyệt nhanh hoặc tự động duyệt | `T07-04` | Thắng |
-| `M07-F022` | P2 | `KEEP` | `K-WP14` | **Khải** | Tạm khoá quyền báo cáo khi uy tín xuống dưới ngưỡng | `T07-05` | Thắng |
-| `M07-F023` | P2 | `KEEP` | `K-WP14` | **Khải** | Huy hiệu người đóng góp tích cực | `T07-06` | Thắng |
-| `M07-F024` | P2 | `KEEP` | `K-WP14` | **Khải** | Phát hiện nhóm tài khoản phối hợp báo cáo sai sự thật | `T07-07` | Thắng |
-| `M07-F025` | P0 | `ADD` | `K-WP15` | **Khải** | Community Report lifecycle thống nhất `PENDING -> UNDER_REVIEW -> VERIFIED \\| REJECTED`; review phải trace reviewer/time/reason. | `ARCH-12 (Architecture V3.2)` | — |
-| `M07-F026` | P0 | `ADD` | `K-WP15` | **Khải** | Chỉ report `VERIFIED` đủ trust/policy mới được chuyển thành reputation/threat signal; unverified report không tạo hard blacklist. | `ARCH-13 (Architecture V3.2)` | — |
+| `M07-F001` | P0 | `KEEP` | `H-WP12` | **Hùng** | `POST /v1/reports` với loại thực thể, giá trị, mô tả | `T05-01` | Thắng |
+| `M07-F002` | P0 | `KEEP` | `H-WP12` | **Hùng** | Rate limit 10 báo cáo / ngày / user | `T05-02` | Thắng |
+| `M07-F003` | P0 | `KEEP` | `H-WP12` | **Hùng** | Nút "Gửi báo cáo" ngay trong trang kết quả quét, điền sẵn dữ liệu | `T05-03` | Thắng |
+| `M07-F004` | P1 | `KEEP` | `H-WP12` | **Hùng** | Đính kèm file bằng chứng (ảnh chụp màn hình), giới hạn dung lượng và định dạng | `T05-04` | Thắng |
+| `M07-F005` | P1 | `KEEP` | `H-WP12` | **Hùng** | Chọn loại lừa đảo theo taxonomy (R03) | `T05-05` | Thắng |
+| `M07-F006` | P1 | `KEEP` | `H-WP12` | **Hùng** | Xem trạng thái các báo cáo mình đã gửi | `T05-06` | Thắng |
+| `M07-F007` | P2 | `KEEP` | `H-WP12` | **Hùng** | Báo cáo ẩn danh không cần đăng nhập, có CAPTCHA | `T05-07` | Thắng |
+| `M07-F008` | P2 | `KEEP` | `H-WP12` | **Hùng** | Cảnh báo trùng lặp khi entity đã được báo cáo | `T05-08` | Thắng |
+| `M07-F009` | P0 | `KEEP` | `H-WP13` | **Hùng** | Trạng thái báo cáo: `PENDING`, `UNDER_REVIEW`, `VERIFIED`, `REJECTED`, `NEED_MORE_INFO`, `RESOLVED` | `T06-01` | Thắng |
+| `M07-F010` | P0 | `KEEP` | `H-WP13` | **Hùng** | Hàng đợi duyệt cho admin, sắp xếp theo mức độ và thời gian | `T06-02` | Thắng |
+| `M07-F011` | P0 | `KEEP` | `H-WP13` | **Hùng** | Duyệt báo cáo → tạo/cập nhật `risk_entities` | `T06-03` | Thắng |
+| `M07-F012` | P0 | `KEEP` | `H-WP13` | **Hùng** | Ghi audit log mọi thao tác duyệt | `T06-04` | Thắng |
+| `M07-F013` | P1 | `KEEP` | `H-WP13` | **Hùng** | Xem chi tiết báo cáo kèm bằng chứng và kết quả quét liên quan | `T06-05` | Thắng |
+| `M07-F014` | P1 | `KEEP` | `H-WP13` | **Hùng** | Duyệt hàng loạt các báo cáo cùng một entity | `T06-06` | Thắng |
+| `M07-F015` | P1 | `KEEP` | `H-WP13` | **Hùng** | Ghi lý do khi từ chối, gửi thông báo cho người báo cáo | `T06-07` | Thắng |
+| `M07-F016` | P2 | `KEEP` | `H-WP13` | **Hùng** | Tự động ưu tiên báo cáo từ người có uy tín cao | `T06-08` | Thắng |
+| `M07-F017` | P2 | `KEEP` | `H-WP13` | **Hùng** | Phân công báo cáo cho từng moderator | `T06-09` | Thắng |
+| `M07-F018` | P1 | `KEEP` | `H-WP14` | **Hùng** | Tính điểm uy tín dựa trên tỷ lệ báo cáo được duyệt | `T07-01` | Thắng |
+| `M07-F019` | P1 | `KEEP` | `H-WP14` | **Hùng** | Hạ uy tín khi báo cáo bị từ chối nhiều lần | `T07-02` | Thắng |
+| `M07-F020` | P1 | `KEEP` | `H-WP14` | **Hùng** | Phát hiện báo cáo trùng lặp và báo cáo hàng loạt bất thường | `T07-03` | Thắng |
+| `M07-F021` | P2 | `KEEP` | `H-WP14` | **Hùng** | Người uy tín cao được duyệt nhanh hoặc tự động duyệt | `T07-04` | Thắng |
+| `M07-F022` | P2 | `KEEP` | `H-WP14` | **Hùng** | Tạm khoá quyền báo cáo khi uy tín xuống dưới ngưỡng | `T07-05` | Thắng |
+| `M07-F023` | P2 | `KEEP` | `H-WP14` | **Hùng** | Huy hiệu người đóng góp tích cực | `T07-06` | Thắng |
+| `M07-F024` | P2 | `KEEP` | `H-WP14` | **Hùng** | Phát hiện nhóm tài khoản phối hợp báo cáo sai sự thật | `T07-07` | Thắng |
+| `M07-F025` | P0 | `ADD` | `H-WP15` | **Hùng** | Community Report lifecycle thống nhất `PENDING -> UNDER_REVIEW -> VERIFIED/REJECTED`; review phải trace reviewer/time/reason. | `ARCH-12 (Architecture V3.2)` | — |
+| `M07-F026` | P0 | `ADD` | `H-WP15` | **Hùng** | Chỉ report `VERIFIED` đủ trust/policy mới được chuyển thành reputation/threat signal; unverified report không tạo hard blacklist. | `ARCH-13 (Architecture V3.2)` | — |
 
 ## M08. Threat Intelligence Management
 
 > **Type:** Admin/Internal Feature  
 > **Actor:** Admin, Spring Boot scan core  
 > **Dependencies:** M07; M13; M14  
-> **Owner:** Kiên — Decision Core & Governance.
+> **Owner:** Kiên — Reputation, Risk & Orchestration.
 
 **Mục đích:** Quản lý threat/risk source, whitelist/blacklist/reputation và pipeline ingestion; core là nơi duy nhất tra dữ liệu uy tín cho scan.
 
@@ -659,7 +669,7 @@ QR:     child scores + QR-specific rules
 > **Type:** Shared/Admin Feature  
 > **Actor:** Admin, All Scan Modules  
 > **Dependencies:** M08; M11; M12; M13; M14  
-> **Owner:** Kiên — Decision Core & Governance.
+> **Owner:** Kiên — Reputation, Risk & Orchestration.
 
 **Mục đích:** Quản lý rule/policy, Signal Aggregation, Rule Engine, Risk Fusion, threshold, versioning và admin operations liên quan scoring.
 
@@ -712,7 +722,7 @@ QR:     child scores + QR-specific rules
 > **Type:** End-to-End Feature / Shared Delivery Capability  
 > **Actor:** User, Admin; internal producers M01/M06/M07/M12/M14  
 > **Dependencies:** M01; M06; M07; M12; M13; M14  
-> **Owner:** Hùng — Identity, Delivery & Runtime.
+> **Owner:** Hùng — Identity, Community, Notification & Audit.
 
 **Mục đích:** Tập trung notification policy, channel resolver, template, endpoint và delivery worker; channel/provider agnostic và M10 không sở hữu business truth của OTP/scan/report.
 
@@ -754,7 +764,7 @@ QR:     child scores + QR-specific rules
 |---|---|---|---|---|---|---|---|
 | `M11-F001` | P0 | `MODIFY` | `T-WP15` | **Thắng** | Triển khai **Python AI/ML Worker** consume `q.ai.analyze`; FastAPI nếu giữ chỉ dùng `/health`, `/ready`, diagnostics nội bộ, không phải đường inference của scan. | `ARCH/V3.2 + H11-01` | Hùng |
 | `M11-F002` | P1 | `MODIFY` | `T-WP15` | **Thắng** | Feature flag `ai.enabled`; AI fail/quá `aiTaskDeadline` thì M12 finalize bằng tín hiệu còn lại với `degraded=true`, M09 renormalize thay vì coi AI = 0. | `ARCH/V3.2 + H11-02` | Hùng |
-| `M11-F003` | P0 | `MODIFY` | `T-WP15` | **Thắng** | AI Worker publish `ai.analysis.completed\|failed` vào `q.scan.result`; prediction normalized gồm `label`, `probability`, `providerKey`, `modelId`, `modelVersion`, `latencyMs`, không chứa `riskScore`/`riskLevel`. | `ARCH-V3.3 + H11-03` | Hùng |
+| `M11-F003` | P0 | `MODIFY` | `T-WP15` | **Thắng** | AI Worker publish `ai.analysis.completed\ | failed` vào `q.scan.result`; prediction normalized gồm `label`, `probability`, `providerKey`, `modelId`, `modelVersion`, `latencyMs`, không chứa `riskScore`/`riskLevel`. | `ARCH-V3.3 + H11-03` | Hùng |
 | `M11-F004` | P0 | `MODIFY` | `T-WP15` | **Thắng** | AI task/result contract versioned có `eventId`, `correlationId`, `scanId`, `taskId`, `kind`, `deadlineAt`; consumer idempotent theo `eventId` + `taskId`. | `ARCH/V3.2 + H11-04` | Hùng |
 | `M11-F005` | P1 | `MODIFY` | `T-WP15` | **Thắng** | M12/Spring Boot ghép AI result theo `scanId + taskId`, chuyển prediction thành AI `AnalysisSignal`, quản lý barrier rồi mới gọi M09 Risk Fusion. | `ARCH/V3.2 + H11-05` | Hùng |
 | `M11-F006` | P1 | `MODIFY` | `T-WP15` | **Thắng** | Mask/minimize PII trong AI payload; AI Worker không đọc/ghi PostgreSQL/Redis/business tables và không gọi Spring Boot API. | `ARCH/V3.2 + H11-06` | Hùng |
@@ -768,7 +778,7 @@ QR:     child scores + QR-specific rules
 | `M11-F014` | P2 | `KEEP` | `T-WP18` | **Thắng** | Tinh chỉnh trọng số rule dựa trên số liệu thay vì phỏng đoán | `H12-05` | Hùng |
 | `M11-F015` | P2 | `KEEP` | `T-WP18` | **Thắng** | Theo dõi tỷ lệ báo động giả trên dữ liệu thật sau khi triển khai | `H12-06` | Hùng |
 | `M11-F016` | P2 | `KEEP` | `T-WP18` | **Thắng** | So sánh với công cụ có sẵn (ChongLuaDao, PhishTank) trên cùng tập dữ liệu | `H12-07` | Hùng |
-| `M11-F017` | P0 | `MODIFY` | `T-WP15` | **Thắng** | AI Worker có `handleAiTask`: validate → dedupe task → route model (`URL_FEATURES\\|TEXT_CONTENT\\|WEB_CONTENT`) → preprocess → inference → publish success/failure. | `ARCH/V3.2 + ARCH-22 (Architecture V3.2)` | — |
+| `M11-F017` | P0 | `MODIFY` | `T-WP15` | **Thắng** | AI Worker có `handleAiTask`: validate → dedupe task → route model (`URL_FEATURES` / `TEXT_CONTENT` / `WEB_CONTENT`) → preprocess → inference → publish success/failure. | `ARCH/V3.2 + ARCH-22 (Architecture V3.2)` | — |
 | `M11-F018` | P0 | `MODIFY` | `T-WP15` | **Thắng** | Operational default: `aiTaskDeadline=20s` ở M12, model/LLM timeout=10s trong AI Worker, `prefetch_count=4`; task phải publish FAILED khi timeout/model unavailable; retry exhausted → `q.ai.analyze.dlq`. | `ARCH-V3.3 + ARCH-AI-OPS` | — |
 | `M11-F019` | P0 | `ADD` | `T-WP16` | **Thắng** | Inference Provider Resolver/registry map `kind + inferenceProfile` sang `providerKey + model config`; `providerKey` là extensible string, không phải closed enum. | `ARCH-V3.3-M11` | — |
 | `M11-F020` | P1 | `ADD` | `T-WP16` | **Thắng** | Hỗ trợ provider adapter cho direct API, gateway/aggregator, custom HTTP và local/fine-tuned runtime; mọi output normalize về cùng `AiPrediction`, downstream không branch business rule theo provider/model. | `MODSPEC-V1.3-M11` | — |
@@ -778,7 +788,7 @@ QR:     child scores + QR-specific rules
 > **Type:** Shared Platform  
 > **Actor:** M02–M06; phối hợp M08–M11/M14  
 > **Dependencies:** M08; M09; M11; M13; M14; M02–M05  
-> **Owner:** Kiên — Decision Core & Governance.
+> **Owner:** Kiên — Reputation, Risk & Orchestration.
 
 **Mục đích:** Sở hữu scan lifecycle/orchestration, Guest/User access/quota gate, queue dispatch, result consumption, nested scan, AI task barrier và finalization.
 
@@ -790,7 +800,7 @@ QR:     child scores + QR-specific rules
 | `M12-F002` | P0 | `KEEP` | `I-WP11` | **Kiên** | Trùng key nhưng khác request hash → trả `409 IDEMPOTENCY_KEY_CONFLICT` | `H07-05` | Hùng |
 | `M12-F003` | P1 | `KEEP` | `I-WP11` | **Kiên** | Trả `429` kèm header `Retry-After` và thông báo thân thiện | `H07-06` | Hùng |
 | `M12-F004` | P0 | `ADD` | `I-WP11` | **Kiên** | `ScanTypeResolver` + `ProcessorRegistry/JobRouter` map `URL`, `TEXT`, `ENTITY`, `QR` sang routing key/worker phù hợp. | `ARCH-24 (Architecture V3.2)` | — |
-| `M12-F005` | P0 | `ADD` | `I-WP12` | **Kiên** | Scan lifecycle thống nhất `PENDING -> PROCESSING -> COMPLETED \\| FAILED`; không để scan treo `PROCESSING` vô hạn. | `ARCH-25 (Architecture V3.2)` | — |
+| `M12-F005` | P0 | `ADD` | `I-WP12` | **Kiên** | Scan lifecycle thống nhất `PENDING -> PROCESSING -> COMPLETED/FAILED`; không để scan treo `PROCESSING` vô hạn. | `ARCH-25 (Architecture V3.2)` | — |
 | `M12-F006` | P0 | `ADD` | `I-WP12` | **Kiên** | Worker Result Consumer nhận kết quả qua `q.scan.result`, validate schema, deduplicate event và chuyển signal vào Signal Aggregator. | `ARCH-26 (Architecture V3.2)` | — |
 | `M12-F007` | P0 | `ADD` | `I-WP12` | **Kiên** | Async event envelope có `eventId`, `jobId`, `correlationId`, `eventVersion`, `attempt`, `scanId`, processor/model version để trace pipeline. | `ARCH-27 (Architecture V3.2)` | — |
 | `M12-F008` | P0 | `ADD` | `I-WP12` | **Kiên** | RabbitMQ at-least-once -> consumer phải idempotent theo `eventId`, duplicate ACK/ignore và không double-count signal. | `ARCH-28 (Architecture V3.2)` | — |
@@ -811,56 +821,56 @@ QR:     child scores + QR-specific rules
 > **Type:** Infrastructure  
 > **Actor:** Toàn hệ thống  
 > **Dependencies:** —  
-> **Owner:** Hùng — Identity, Delivery & Runtime.
+> **Owner:** Khải — URL Detection & Platform / CI-CD.
 
 **Mục đích:** Cung cấp Nginx, PostgreSQL, Redis, RabbitMQ, MinIO/S3, network isolation, secret management, deployment/CI và health/readiness.
 
-**Backlog:** 35 feature — P0 15, P1 12, P2 8.
+**Backlog:** 35 feature — P0 18, P1 11, P2 6.
 
 | ID | Priority | Action | Work Package | Owner hiện tại | Feature hiện tại | Legacy/Source | Legacy owner (trace only) |
 |---|---|---|---|---|---|---|---|
-| `M13-F001` | P0 | `KEEP` | `H-WP12` | **Hùng** | Không lưu mật khẩu, OTP, số thẻ, CVV của người dùng dưới bất kỳ dạng nào | `H08-01` | Hùng |
-| `M13-F002` | P0 | `KEEP` | `H-WP12` | **Hùng** | Che dữ liệu nhạy cảm trong log (số tài khoản → `****1234`, SĐT → `+849****678`) | `H08-02` | Hùng |
-| `M13-F003` | P0 | `MODIFY` | `H-WP13` | **Hùng** | Docker Compose local/dev gồm PostgreSQL, Redis, RabbitMQ, MinIO, Spring Boot, scanner workers, Python AI/ML Worker, Notification Delivery Worker, Report Export Worker, Threat Ingestion Worker, Web/Admin/Mobile dev dependencies và Nginx theo Architecture V3.3. | `K11-01 + V3.3` | Khải |
-| `M13-F004` | P0 | `KEEP` | `H-WP13` | **Hùng** | Dockerfile cho từng service, dùng multi-stage build | `K11-02` | Khải |
-| `M13-F005` | P0 | `MODIFY` | `H-WP12` | **Hùng** | Cấu hình qua environment/secret management; không hardcode/commit JWT signing key, OAuth client secret, AI provider credential hay notification provider credential. | `K11-03 + V3.3` | Khải |
-| `M13-F006` | P0 | `MODIFY` | `H-WP13` | **Hùng** | Health/readiness cho Spring Boot, scanner workers, AI Worker, Notification Worker, Report Export/Threat Ingestion và dependency chính; FastAPI nếu dùng cho AI chỉ giữ health/readiness/diagnostics. | `K11-04 + V3.3` | Khải |
-| `M13-F007` | P1 | `KEEP` | `H-WP13` | **Hùng** | `docker-compose.prod.yml` kèm Nginx và TLS Let's Encrypt | `K11-05` | Khải |
-| `M13-F008` | P1 | `MODIFY` | `H-WP13` | **Hùng** | RabbitMQ và MinIO là thành phần kiến trúc hiện tại, cấu hình ngay trong local stack; không coi là addon chỉ tới “M4”. | `K11-06` | Khải |
-| `M13-F009` | P1 | `KEEP` | `H-WP13` | **Hùng** | Script khởi tạo và migration cơ sở dữ liệu (Flyway/Liquibase) | `K11-07` | Khải |
-| `M13-F010` | P1 | `KEEP` | `H-WP13` | **Hùng** | Sao lưu và phục hồi PostgreSQL định kỳ | `K11-08` | Khải |
-| `M13-F011` | P2 | `KEEP` | `H-WP13` | **Hùng** | Triển khai lên EC2/VPS bằng script một lệnh | `K11-09` | Khải |
-| `M13-F012` | P0 | `KEEP` | `H-WP14` | **Hùng** | GitHub Actions chạy test của cả 3 service trên mỗi pull request | `K12-01` | Khải |
-| `M13-F013` | P0 | `KEEP` | `H-WP14` | **Hùng** | Chặn merge khi test đỏ | `K12-02` | Khải |
-| `M13-F014` | P1 | `KEEP` | `H-WP14` | **Hùng** | Kiểm tra định dạng và lint (Checkstyle, ruff, ESLint) | `K12-03` | Khải |
-| `M13-F015` | P1 | `KEEP` | `H-WP14` | **Hùng** | Đo độ phủ test, hiển thị badge | `K12-04` | Khải |
-| `M13-F016` | P1 | `KEEP` | `H-WP14` | **Hùng** | Log có cấu trúc (JSON) kèm `X-Request-Id` xuyên suốt mọi hop | `K12-05` | Khải |
-| `M13-F017` | P1 | `KEEP` | `H-WP14` | **Hùng** | Quét lỗ hổng phụ thuộc (Dependabot / OWASP Dependency-Check) | `K12-06` | Khải |
-| `M13-F018` | P2 | `KEEP` | `H-WP15` | **Hùng** | Metrics Prometheus + dashboard Grafana | `K12-07` | Khải |
-| `M13-F019` | P2 | `KEEP` | `H-WP15` | **Hùng** | Cảnh báo khi tỷ lệ lỗi hoặc độ trễ vượt ngưỡng | `K12-08` | Khải |
-| `M13-F020` | P2 | `KEEP` | `H-WP14` | **Hùng** | Tự động build và đẩy image khi merge vào `main` | `K12-09` | Khải |
-| `M13-F021` | P1 | `KEEP` | `H-WP16` | **Hùng** | Tách toàn bộ chuỗi giao diện ra file ngôn ngữ, mặc định tiếng Việt | `R12-01` | Kiên |
-| `M13-F022` | P1 | `KEEP` | `H-WP16` | **Hùng** | Tương phản màu và cỡ chữ đạt WCAG AA | `R12-02` | Kiên |
-| `M13-F023` | P1 | `KEEP` | `H-WP16` | **Hùng** | Điều hướng được hoàn toàn bằng bàn phím | `R12-03` | Kiên |
-| `M13-F024` | P1 | `KEEP` | `H-WP16` | **Hùng** | Không truyền đạt thông tin chỉ bằng màu (kèm biểu tượng và chữ cho SAFE/CAUTION/DANGER) | `R12-04` | Kiên |
-| `M13-F025` | P2 | `KEEP` | `H-WP16` | **Hùng** | Bản dịch tiếng Anh | `R12-05` | Kiên |
-| `M13-F026` | P2 | `KEEP` | `H-WP16` | **Hùng** | Nhãn ARIA và kiểm thử với trình đọc màn hình | `R12-06` | Kiên |
-| `M13-F027` | P2 | `KEEP` | `H-WP16` | **Hùng** | Chế độ chữ lớn dành cho người cao tuổi | `R12-07` | Kiên |
-| `M13-F028` | P0 | `KEEP` | `H-WP16` | **Hùng** | Share Target nhận link và văn bản từ Zalo/Messenger/SMS, tự định tuyến theo nội dung | `T11-04` | Thắng |
-| `M13-F029` | P2 | `FUTURE_SCOPE` | `H-WP16` | **Hùng** | Widget quét nhanh trên màn hình chính | `T11-08` | Thắng |
-| `M13-F030` | P0 | `MODIFY` | `H-WP17` | **Hùng** | RabbitMQ topology chuẩn: `antiscan.topic`, `antiscan.dlx`, queues `q.scan.url\|text\|entity\|qr`, `q.ai.analyze`, `q.scan.result`, `q.report.export`, `q.notification`, `q.threat.ingest` + DLQ tương ứng. | `ARCH-V3.3-MQ` | — |
-| `M13-F031` | P0 | `MODIFY` | `H-WP17` | **Hùng** | PostgreSQL là source of truth; Redis chỉ cache/session-revocation/rate-limit/idempotency/lock/temporary coordination và không giữ canonical business data duy nhất. | `ARCH-V3.3-DATA` | — |
-| `M13-F032` | P0 | `ADD` | `H-WP17` | **Hùng** | Nginx chịu TLS/reverse proxy/coarse IP-flood limit; Spring Boot + Redis chịu business quota theo user/account/API identity. | `ARCH-35 (Architecture V3.2)` | — |
-| `M13-F033` | P0 | `ADD` | `H-WP17` | **Hùng** | MinIO/S3 lưu evidence/export/binary; PostgreSQL chỉ lưu metadata/object key/hash/MIME/size/owner relation. | `ARCH-36 (Architecture V3.2)` | — |
-| `M13-F034` | P0 | `ADD` | `H-WP17` | **Hùng** | Network segmentation/egress policy: scanner/AI worker không truy cập PostgreSQL/Redis/core API; URL Worker chỉ thêm outbound public fetch SSRF-safe; AI/Notification worker chỉ thêm egress tới provider được cấu hình; Ingestion Worker tới feed + PG/Redis. | `ARCH-V3.3-NET` | — |
-| `M13-F035` | P0 | `ADD` | `H-WP12` | **Hùng** | Quản lý secret/key tập trung cho JWT signing keys, OAuth/OIDC client credentials, AI provider credentials và notification provider credentials; rotate được và không lưu raw secret trong business tables. | `ARCH-V3.3-SECRETS` | — |
+| `M13-F001` | P0 | `KEEP` | `K-WP09` | **Khải** | Không lưu mật khẩu, OTP, số thẻ, CVV của người dùng dưới bất kỳ dạng nào | `H08-01` | Hùng |
+| `M13-F002` | P0 | `KEEP` | `K-WP09` | **Khải** | Che dữ liệu nhạy cảm trong log (số tài khoản → `****1234`, SĐT → `+849****678`) | `H08-02` | Hùng |
+| `M13-F003` | P0 | `MODIFY` | `K-WP10` | **Khải** | Docker Compose local/dev gồm PostgreSQL, Redis, RabbitMQ, MinIO, Spring Boot, scanner workers, Python AI/ML Worker, Notification Delivery Worker, Report Export Worker, Threat Ingestion Worker, Web/Admin/Mobile dev dependencies và Nginx theo Architecture V3.3. | `K11-01 + V3.3` | Khải |
+| `M13-F004` | P0 | `KEEP` | `K-WP10` | **Khải** | Dockerfile cho từng service, dùng multi-stage build | `K11-02` | Khải |
+| `M13-F005` | P0 | `MODIFY` | `K-WP09` | **Khải** | Cấu hình qua environment/secret management; không hardcode/commit JWT signing key, OAuth client secret, AI provider credential hay notification provider credential. | `K11-03 + V3.3` | Khải |
+| `M13-F006` | P0 | `MODIFY` | `K-WP10` | **Khải** | Health/readiness cho Spring Boot, scanner workers, AI Worker, Notification Worker, Report Export/Threat Ingestion và dependency chính; FastAPI nếu dùng cho AI chỉ giữ health/readiness/diagnostics. | `K11-04 + V3.3` | Khải |
+| `M13-F007` | P1 | `KEEP` | `K-WP12` | **Khải** | `docker-compose.prod.yml` kèm Nginx và TLS Let's Encrypt | `K11-05` | Khải |
+| `M13-F008` | P1 | `MODIFY` | `K-WP10` | **Khải** | RabbitMQ và MinIO là thành phần kiến trúc hiện tại, cấu hình ngay trong local stack; không coi là addon chỉ tới “M4”. | `K11-06` | Khải |
+| `M13-F009` | P0 | `KEEP` | `K-WP12` | **Khải** | Script khởi tạo và migration cơ sở dữ liệu (Flyway/Liquibase) | `K11-07` | Khải |
+| `M13-F010` | P1 | `KEEP` | `K-WP13` | **Khải** | Sao lưu và phục hồi PostgreSQL định kỳ | `K11-08` | Khải |
+| `M13-F011` | P0 | `MODIFY` | `K-WP12` | **Khải** | CD triển khai MVP lên staging/VPS từ image/version đã build; chạy migration, health/readiness và smoke check theo quy trình reproducible, không phụ thuộc SSH thủ công tùy hứng | `K11-09` | Khải |
+| `M13-F012` | P0 | `KEEP` | `K-WP11` | **Khải** | GitHub Actions chạy test của cả 3 service trên mỗi pull request | `K12-01` | Khải |
+| `M13-F013` | P0 | `KEEP` | `K-WP11` | **Khải** | Chặn merge khi test đỏ | `K12-02` | Khải |
+| `M13-F014` | P1 | `KEEP` | `K-WP11` | **Khải** | Kiểm tra định dạng và lint (Checkstyle, ruff, ESLint) | `K12-03` | Khải |
+| `M13-F015` | P1 | `KEEP` | `K-WP11` | **Khải** | Đo độ phủ test, hiển thị badge | `K12-04` | Khải |
+| `M13-F016` | P1 | `KEEP` | `K-WP13` | **Khải** | Log có cấu trúc (JSON) kèm `X-Request-Id` xuyên suốt mọi hop | `K12-05` | Khải |
+| `M13-F017` | P1 | `KEEP` | `K-WP11` | **Khải** | Quét lỗ hổng phụ thuộc (Dependabot / OWASP Dependency-Check) | `K12-06` | Khải |
+| `M13-F018` | P2 | `KEEP` | `K-WP13` | **Khải** | Metrics Prometheus + dashboard Grafana | `K12-07` | Khải |
+| `M13-F019` | P2 | `KEEP` | `K-WP13` | **Khải** | Cảnh báo khi tỷ lệ lỗi hoặc độ trễ vượt ngưỡng | `K12-08` | Khải |
+| `M13-F020` | P0 | `MODIFY` | `K-WP12` | **Khải** | GitHub Actions tự động build và push Docker image khi merge vào `main` hoặc tạo release tag; image tag trace được commit/version để dùng cho CD | `K12-09` | Khải |
+| `M13-F021` | P1 | `KEEP` | `K-WP14` | **Khải** | Tách toàn bộ chuỗi giao diện ra file ngôn ngữ, mặc định tiếng Việt | `R12-01` | Kiên |
+| `M13-F022` | P1 | `KEEP` | `K-WP14` | **Khải** | Tương phản màu và cỡ chữ đạt WCAG AA | `R12-02` | Kiên |
+| `M13-F023` | P1 | `KEEP` | `K-WP14` | **Khải** | Điều hướng được hoàn toàn bằng bàn phím | `R12-03` | Kiên |
+| `M13-F024` | P1 | `KEEP` | `K-WP14` | **Khải** | Không truyền đạt thông tin chỉ bằng màu (kèm biểu tượng và chữ cho SAFE/CAUTION/DANGER) | `R12-04` | Kiên |
+| `M13-F025` | P2 | `KEEP` | `K-WP14` | **Khải** | Bản dịch tiếng Anh | `R12-05` | Kiên |
+| `M13-F026` | P2 | `KEEP` | `K-WP14` | **Khải** | Nhãn ARIA và kiểm thử với trình đọc màn hình | `R12-06` | Kiên |
+| `M13-F027` | P2 | `KEEP` | `K-WP14` | **Khải** | Chế độ chữ lớn dành cho người cao tuổi | `R12-07` | Kiên |
+| `M13-F028` | P0 | `KEEP` | `K-WP14` | **Khải** | Share Target nhận link và văn bản từ Zalo/Messenger/SMS, tự định tuyến theo nội dung | `T11-04` | Thắng |
+| `M13-F029` | P2 | `FUTURE_SCOPE` | `K-WP14` | **Khải** | Widget quét nhanh trên màn hình chính | `T11-08` | Thắng |
+| `M13-F030` | P0 | `MODIFY` | `K-WP10` | **Khải** | RabbitMQ topology chuẩn: `antiscan.topic`, `antiscan.dlx`, queues `q.scan.url`, `q.scan.text`, `q.scan.entity`, `q.scan.qr`, `q.ai.analyze`, `q.scan.result`, `q.report.export`, `q.notification`, `q.threat.ingest` + DLQ tương ứng. | `ARCH-V3.3-MQ` | — |
+| `M13-F031` | P0 | `MODIFY` | `K-WP10` | **Khải** | PostgreSQL là source of truth; Redis chỉ cache/session-revocation/rate-limit/idempotency/lock/temporary coordination và không giữ canonical business data duy nhất. | `ARCH-V3.3-DATA` | — |
+| `M13-F032` | P0 | `ADD` | `K-WP10` | **Khải** | Nginx chịu TLS/reverse proxy/coarse IP-flood limit; Spring Boot + Redis chịu business quota theo user/account/API identity. | `ARCH-35 (Architecture V3.2)` | — |
+| `M13-F033` | P0 | `ADD` | `K-WP10` | **Khải** | MinIO/S3 lưu evidence/export/binary; PostgreSQL chỉ lưu metadata/object key/hash/MIME/size/owner relation. | `ARCH-36 (Architecture V3.2)` | — |
+| `M13-F034` | P0 | `ADD` | `K-WP10` | **Khải** | Network segmentation/egress policy: scanner/AI worker không truy cập PostgreSQL/Redis/core API; URL Worker chỉ thêm outbound public fetch SSRF-safe; AI/Notification worker chỉ thêm egress tới provider được cấu hình; Ingestion Worker tới feed + PG/Redis. | `ARCH-V3.3-NET` | — |
+| `M13-F035` | P0 | `ADD` | `K-WP09` | **Khải** | Quản lý secret/key tập trung cho JWT signing keys, OAuth/OIDC client credentials, AI provider credentials và notification provider credentials; rotate được và không lưu raw secret trong business tables. | `ARCH-V3.3-SECRETS` | — |
 
 ## M14. Audit & Observability
 
 > **Type:** Shared Platform / Admin Feature  
 > **Actor:** Admin, Internal Operations  
 > **Dependencies:** M01; M12; M13  
-> **Owner:** Kiên — Decision Core & Governance.
+> **Owner:** Hùng — Identity, Community, Notification & Audit.
 
 **Mục đích:** Tập trung audit trail và operational metadata cho auth/security, admin, scan/worker/AI, retry/DLQ và correlation chain.
 
@@ -868,24 +878,24 @@ QR:     child scores + QR-specific rules
 
 | ID | Priority | Action | Work Package | Owner hiện tại | Feature hiện tại | Legacy/Source | Legacy owner (trace only) |
 |---|---|---|---|---|---|---|---|
-| `M14-F001` | P0 | `MODIFY` | `I-WP15` | **Kiên** | Audit thao tác nhạy cảm: login/logout, refresh-token reuse/session revoke, password reset/change, admin duyệt báo cáo và admin sửa rule/policy. | `H05-01 + V3.3` | Hùng |
-| `M14-F002` | P0 | `MODIFY` | `I-WP15` | **Kiên** | Persist `audit_records`/`admin_actions` theo append-only semantics phù hợp; không để module khác tự tạo schema audit riêng. | `H05-02` | Hùng |
-| `M14-F003` | P0 | `KEEP` | `I-WP15` | **Kiên** | Lưu `X-Request-Id` (correlation ID) trong mỗi bản ghi | `H05-03` | Hùng |
-| `M14-F004` | P1 | `KEEP` | `I-WP17` | **Kiên** | Trang xem audit log cho admin, lọc theo user / hành động / khoảng thời gian | `H05-04` | Hùng |
-| `M14-F005` | P1 | `KEEP` | `I-WP17` | **Kiên** | Ghi kèm IP và User-Agent | `H05-05` | Hùng |
-| `M14-F006` | P2 | `KEEP` | `I-WP17` | **Kiên** | Xuất audit log ra CSV phục vụ điều tra | `H05-06` | Hùng |
-| `M14-F007` | P2 | `KEEP` | `I-WP17` | **Kiên** | Cảnh báo khi phát hiện chuỗi thao tác bất thường | `H05-07` | Hùng |
-| `M14-F008` | P0 | `ADD` | `I-WP16` | **Kiên** | Chuẩn hóa correlation metadata xuyên pipeline: `correlationId`, `eventId`, `jobId`, `taskId`, `scanId`, `processorVersion`, `eventVersion`; cho phép truy vết từ request tới worker/AI/DLQ. | `ARCH-V3.2-M14-01` | — |
-| `M14-F009` | P1 | `ADD` | `I-WP16` | **Kiên** | Ghi operational metadata cho scan/worker/AI failure, retry, DLQ và late AI result; không tạo business effect lần hai khi event bị duplicate. | `ARCH-V3.2-M14-02` | — |
-| `M14-F010` | P1 | `ADD` | `I-WP17` | **Kiên** | Admin/Operations có thể lọc audit theo actor/action/resource/time và các correlation IDs; sensitive fields phải mask/redact. | `ARCH-V3.2-M14-03` | — |
-| `M14-F011` | P0 | `ADD` | `I-WP15` | **Kiên** | Security audit cho auth-session lifecycle/reuse detection phải trace được theo user/session/correlation nhưng tuyệt đối không ghi raw access token, refresh token, OTP hoặc provider assertion. | `ARCH-V3.3-AUDIT` | — |
+| `M14-F001` | P0 | `MODIFY` | `H-WP16` | **Hùng** | Audit thao tác nhạy cảm: login/logout, refresh-token reuse/session revoke, password reset/change, admin duyệt báo cáo và admin sửa rule/policy. | `H05-01 + V3.3` | Hùng |
+| `M14-F002` | P0 | `MODIFY` | `H-WP16` | **Hùng** | Persist `audit_records`/`admin_actions` theo append-only semantics phù hợp; không để module khác tự tạo schema audit riêng. | `H05-02` | Hùng |
+| `M14-F003` | P0 | `KEEP` | `H-WP16` | **Hùng** | Lưu `X-Request-Id` (correlation ID) trong mỗi bản ghi | `H05-03` | Hùng |
+| `M14-F004` | P1 | `KEEP` | `H-WP18` | **Hùng** | Trang xem audit log cho admin, lọc theo user / hành động / khoảng thời gian | `H05-04` | Hùng |
+| `M14-F005` | P1 | `KEEP` | `H-WP18` | **Hùng** | Ghi kèm IP và User-Agent | `H05-05` | Hùng |
+| `M14-F006` | P2 | `KEEP` | `H-WP18` | **Hùng** | Xuất audit log ra CSV phục vụ điều tra | `H05-06` | Hùng |
+| `M14-F007` | P2 | `KEEP` | `H-WP18` | **Hùng** | Cảnh báo khi phát hiện chuỗi thao tác bất thường | `H05-07` | Hùng |
+| `M14-F008` | P0 | `ADD` | `H-WP17` | **Hùng** | Chuẩn hóa correlation metadata xuyên pipeline: `correlationId`, `eventId`, `jobId`, `taskId`, `scanId`, `processorVersion`, `eventVersion`; cho phép truy vết từ request tới worker/AI/DLQ. | `ARCH-V3.2-M14-01` | — |
+| `M14-F009` | P1 | `ADD` | `H-WP17` | **Hùng** | Ghi operational metadata cho scan/worker/AI failure, retry, DLQ và late AI result; không tạo business effect lần hai khi event bị duplicate. | `ARCH-V3.2-M14-02` | — |
+| `M14-F010` | P1 | `ADD` | `H-WP18` | **Hùng** | Admin/Operations có thể lọc audit theo actor/action/resource/time và các correlation IDs; sensitive fields phải mask/redact. | `ARCH-V3.2-M14-03` | — |
+| `M14-F011` | P0 | `ADD` | `H-WP16` | **Hùng** | Security audit cho auth-session lifecycle/reuse detection phải trace được theo user/session/correlation nhưng tuyệt đối không ghi raw access token, refresh token, OTP hoặc provider assertion. | `ARCH-V3.3-AUDIT` | — |
 
 ## FUTURE. Product Extensions ngoài M01–M14
 
 > **Type:** Future Scope  
 > **Actor:** User/Admin/API Client tương lai  
 > **Dependencies:** —  
-> **Owner:** Đã assign theo Future Work Package ở mục 2.3; owner chịu trách nhiệm nghiên cứu/POC, nhưng Future vẫn ngoài cam kết MVP cho tới khi được promote.
+> **Owner:** Hùng — Identity, Community, Notification & Audit.
 
 **Mục đích:** Các extension không thuộc MVP: browser extension/knowledge/gamification và commercialization như plan, subscription, usage, credit, API credentials.
 
@@ -911,21 +921,21 @@ QR:     child scores + QR-specific rules
 | `FUTURE-F016` | P2 | `FUTURE_SCOPE` | `T-FWP01` | **Thắng** | Bàn giao sang biểu mẫu báo cáo khi xác định là lừa đảo | `R10-04` | Kiên |
 | `FUTURE-F017` | P2 | `FUTURE_SCOPE` | `T-FWP01` | **Thắng** | Giới hạn phạm vi trả lời, từ chối câu hỏi ngoài lĩnh vực | `R10-05` | Kiên |
 | `FUTURE-F018` | P2 | `FUTURE_SCOPE` | `T-FWP01` | **Thắng** | Ghi nhận câu hỏi thường gặp để bổ sung vào thư viện | `R10-06` | Kiên |
-| `FUTURE-F019` | P2 | `FUTURE_SCOPE` | `I-FWP02` | **Kiên** | Bài trắc nghiệm "Bạn có nhận ra tin nhắn lừa đảo không?" | `R11-01` | Kiên |
-| `FUTURE-F020` | P2 | `FUTURE_SCOPE` | `I-FWP02` | **Kiên** | Chấm điểm và giải thích từng câu sai | `R11-02` | Kiên |
-| `FUTURE-F021` | P2 | `FUTURE_SCOPE` | `K-FWP02` | **Khải** | Huy hiệu theo mốc: số lần quét, số báo cáo được duyệt | `R11-03` | Kiên |
-| `FUTURE-F022` | P2 | `FUTURE_SCOPE` | `K-FWP02` | **Khải** | Bảng xếp hạng đóng góp cộng đồng | `R11-04` | Kiên |
-| `FUTURE-F023` | P2 | `FUTURE_SCOPE` | `K-FWP02` | **Khải** | Chuỗi ngày sử dụng liên tục | `R11-05` | Kiên |
-| `FUTURE-F024` | P2 | `FUTURE_SCOPE` | `T-FWP02` | **Thắng** | Chia sẻ kết quả bài kiểm tra lên mạng xã hội | `R11-06` | Kiên |
+| `FUTURE-F019` | P2 | `FUTURE_SCOPE` | `T-FWP02` | **Thắng** | Bài trắc nghiệm "Bạn có nhận ra tin nhắn lừa đảo không?" | `R11-01` | Kiên |
+| `FUTURE-F020` | P2 | `FUTURE_SCOPE` | `T-FWP02` | **Thắng** | Chấm điểm và giải thích từng câu sai | `R11-02` | Kiên |
+| `FUTURE-F021` | P2 | `FUTURE_SCOPE` | `H-FWP02` | **Hùng** | Huy hiệu theo mốc: số lần quét, số báo cáo được duyệt | `R11-03` | Kiên |
+| `FUTURE-F022` | P2 | `FUTURE_SCOPE` | `H-FWP02` | **Hùng** | Bảng xếp hạng đóng góp cộng đồng | `R11-04` | Kiên |
+| `FUTURE-F023` | P2 | `FUTURE_SCOPE` | `H-FWP02` | **Hùng** | Chuỗi ngày sử dụng liên tục | `R11-05` | Kiên |
+| `FUTURE-F024` | P2 | `FUTURE_SCOPE` | `K-FWP03` | **Khải** | Chia sẻ kết quả bài kiểm tra lên mạng xã hội | `R11-06` | Kiên |
 | `FUTURE-F025` | P2 | `FUTURE_SCOPE` | `H-FWP01` | **Hùng** | Entitlement profiles định nghĩa quota/featureFlags/historyPolicy/inferenceProfile cho các plan tương lai; M12 chỉ nhận resolved `EntitlementContext`. | `MODSPEC-V1.3-FUTURE` | — |
 | `FUTURE-F026` | P2 | `FUTURE_SCOPE` | `H-FWP01` | **Hùng** | Plans catalog cho Free/Premium/API tiers hoặc gói tương lai; không hard-code plan trong scan/worker contract. | `SCHEMA-V1.0-FUTURE` | — |
 | `FUTURE-F027` | P2 | `FUTURE_SCOPE` | `H-FWP01` | **Hùng** | Account-plan assignment có hiệu lực theo thời gian và audit thay đổi entitlement. | `SCHEMA-V1.0-FUTURE` | — |
 | `FUTURE-F028` | P2 | `FUTURE_SCOPE` | `H-FWP01` | **Hùng** | Subscription lifecycle độc lập với Identity/Scan; trạng thái subscription không đi trực tiếp vào worker message. | `SCHEMA-V1.0-FUTURE` | — |
-| `FUTURE-F029` | P2 | `FUTURE_SCOPE` | `H-FWP02` | **Hùng** | Usage metering theo account/API identity và loại execution; ghi `usage_records` để phục vụ quota/billing sau này. | `SCHEMA-V1.0-FUTURE` | — |
-| `FUTURE-F030` | P2 | `FUTURE_SCOPE` | `H-FWP02` | **Hùng** | Credit account cho user/API client; số dư được suy ra từ ledger, không lưu `credit_balance` trực tiếp trong `users`. | `SCHEMA-V1.0-FUTURE` | — |
-| `FUTURE-F031` | P2 | `FUTURE_SCOPE` | `H-FWP02` | **Hùng** | Credit ledger entries trace đầy đủ debit/credit/adjustment và correlation tới usage/billing event. | `SCHEMA-V1.0-FUTURE` | — |
-| `FUTURE-F032` | P2 | `FUTURE_SCOPE` | `H-FWP02` | **Hùng** | Credit reservation/settlement/release cho tác vụ tốn tài nguyên trước khi execution, không làm thay đổi `RiskResult` contract. | `SCHEMA-V1.0-FUTURE` | — |
-| `FUTURE-F033` | P2 | `FUTURE_SCOPE` | `H-FWP02` | **Hùng** | User-facing API credentials/API client identity với key hash/revoke/rotate; downstream vẫn nhận `AccessContext`, không truyền raw API key tới worker. | `SCHEMA-V1.0-FUTURE` | — |
+| `FUTURE-F029` | P2 | `FUTURE_SCOPE` | `K-FWP02` | **Khải** | Usage metering theo account/API identity và loại execution; ghi `usage_records` để phục vụ quota/billing sau này. | `SCHEMA-V1.0-FUTURE` | — |
+| `FUTURE-F030` | P2 | `FUTURE_SCOPE` | `K-FWP02` | **Khải** | Credit account cho user/API client; số dư được suy ra từ ledger, không lưu `credit_balance` trực tiếp trong `users`. | `SCHEMA-V1.0-FUTURE` | — |
+| `FUTURE-F031` | P2 | `FUTURE_SCOPE` | `K-FWP02` | **Khải** | Credit ledger entries trace đầy đủ debit/credit/adjustment và correlation tới usage/billing event. | `SCHEMA-V1.0-FUTURE` | — |
+| `FUTURE-F032` | P2 | `FUTURE_SCOPE` | `K-FWP02` | **Khải** | Credit reservation/settlement/release cho tác vụ tốn tài nguyên trước khi execution, không làm thay đổi `RiskResult` contract. | `SCHEMA-V1.0-FUTURE` | — |
+| `FUTURE-F033` | P2 | `FUTURE_SCOPE` | `K-FWP02` | **Khải** | User-facing API credentials/API client identity với key hash/revoke/rotate; downstream vẫn nhận `AccessContext`, không truyền raw API key tới worker. | `SCHEMA-V1.0-FUTURE` | — |
 
 ## 5. Quy tắc duy trì backlog
 
