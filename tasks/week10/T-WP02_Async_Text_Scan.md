@@ -2,7 +2,7 @@
 
 **Owner:** Thắng  
 **Module:** M03 Text & Transaction Scam Analysis  
-**Cycle:** W01 · 06/10/2026 → 12/10/2026  
+**Cycle:** W10 · 06/10/2026 → 12/10/2026  
 **Feature IDs:** M03-F008…F015  
 **Release target:** MVP v0.1.0
 

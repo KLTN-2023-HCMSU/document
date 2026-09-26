@@ -2,7 +2,7 @@
 
 **Owner:** Kiên  
 **Module:** M12 Shared Scan Platform  
-**Cycle:** W01 · 06/10/2026 → 12/10/2026  
+**Cycle:** W10 · 06/10/2026 → 12/10/2026  
 **Feature IDs:** M12-F005, F006, F007, F008, F012  
 **Release target:** MVP v0.1.0
 

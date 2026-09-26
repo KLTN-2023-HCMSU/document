@@ -50,7 +50,7 @@
 
 Vẫn giữ **revision V2**. `M01–M14` là boundary kiến trúc; **Work Package (WP)** là đơn vị giao việc và theo dõi tiến độ. Phân công này ưu tiên thứ tự: **dependency/unblock → MVP criticality → khả năng chạy song song → cân workload**.
 
-> **Thay đổi ownership quan trọng:** Khải nhận lại **M13 Platform Infrastructure**, bao gồm local runtime, secrets, CI, CD, migration, topology và runtime operations. CI baseline phải có ngay từ B0; CD MVP phải hoàn thành trước cửa sổ release 30/10/2026.
+> **Thay đổi ownership quan trọng:** Khải nhận lại **M13 Platform Infrastructure**, bao gồm local runtime, secrets, CI, CD, migration, topology và runtime operations. CI baseline phải có ngay từ W10; CD MVP phải hoàn thành trước cửa sổ release 30/10/2026.
 
 > **Quy ước kích thước:** một WP thường tương đương khoảng **2–5 ngày làm việc**; WP hạ tầng có thể chạy xuyên 1–2 tuần nhưng phải có milestone P0 rõ ràng. Implementation subtask chỉ dùng bên trong WP, không phá ownership.
 
@@ -168,7 +168,7 @@ Implementation subtasks (tạo khi vào sprint nếu cần)
 2. **Mock-first bắt buộc.** Dependency cross-owner phải có fake/in-memory adapter hoặc fixture ngay từ đầu; Module Spec V1.3 mục 15 là nguồn contract chính.
 3. **M12 không được trở thành blocker.** Khải/Thắng phát triển worker bằng `FakeMessageBus` + fixtures; Kiên phát triển orchestration bằng worker/AI fixtures; Hùng phát triển auth/community/notification/audit bằng fake ports.
 4. **M13 do Khải sở hữu nhưng không giữ business logic.** Local runtime/CI/CD phải unblock team, còn từng module vẫn test được với test double khi hạ tầng thật chưa sẵn sàng.
-5. **CI/CD là enabling capability của MVP, không phải feature sau MVP.** CI P0 phải chạy từ B0; CD P0 phải hoàn thành trước 20/10 để còn thời gian regression/release rehearsal trước 30/10.
+5. **CI/CD là enabling capability của MVP, không phải feature sau MVP.** CI P0 phải chạy từ W10; CD P0 phải hoàn thành trước 20/10 để còn thời gian regression/release rehearsal trước 30/10.
 6. **Contract test trước integration test.** Chỉ nối môi trường thật khi producer và consumer cùng pass fixture/contract test.
 7. **Cross-owner change cần review contract.** Thay đổi schema/event/API dùng chung không được merge chỉ trong một workstream.
 8. **Owner giữ vertical scope.** Không tách một WP thành “frontend của A / backend của B”; subtask có thể chia nội bộ nhưng owner chịu trách nhiệm Definition of Done cuối cùng.

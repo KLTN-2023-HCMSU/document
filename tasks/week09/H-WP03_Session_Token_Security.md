@@ -2,7 +2,7 @@
 
 **Owner:** Hùng  
 **Module:** M01 Account & Identity  
-**Cycle:** B0 · 27/09/2026 → 05/10/2026  
+**Cycle:** W09 · 27/09/2026 → 05/10/2026  
 **Feature IDs:** M01-F008, F009, F010, F011, F012, F013, F014, F041  
 **Release target:** MVP v0.1.0
 

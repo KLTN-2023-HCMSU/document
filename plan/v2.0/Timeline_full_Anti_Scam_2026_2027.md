@@ -6,8 +6,8 @@
 ## 1. Nguyên tắc scheduling
 
 - Thứ tự ưu tiên: **dependency/unblock → MVP criticality → parallelism → workload balance**.
-- CI baseline phải chạy ngay từ B0; CD MVP phải xong **trước 20/10/2026**.
-- MVP `v0.1.0` target **30/10/2026**; W04 dùng chủ yếu cho freeze/regression/release rehearsal.
+- CI baseline phải chạy ngay từ W09; CD MVP phải xong **trước 20/10/2026**.
+- MVP `v0.1.0` target **30/10/2026**; W13 dùng chủ yếu cho freeze/regression/release rehearsal.
 - Sau MVP: release train 2–4 tuần khi có bugfix/feature đủ giá trị.
 - Public Beta cuối tháng 1/2027; data freeze 31/03/2027; đầu tháng 6/2027 product/data/experiment phải xong.
 
@@ -24,10 +24,10 @@
 
 | Gate | Hạn | Owner | Done khi |
 |---|---|---|---|
-| CI baseline | **B0 / trước 05/10** | Khải | PR chạy test; test đỏ chặn merge |
-| Runtime/topology baseline | **W01 / trước 12/10** | Khải | compose + service readiness + RabbitMQ/Postgres/Redis/MinIO boundaries chạy được |
-| CD + migration + image pipeline | **W02 / trước 19/10** | Khải | build/push image; deploy staging/VPS; migrate; health/readiness; smoke pass |
-| Release rehearsal | **W03** | Khải + cả nhóm | deploy lại từ version/tag mới không thao tác ad-hoc |
+| CI baseline | **W09 / trước 05/10** | Khải | PR chạy test; test đỏ chặn merge |
+| Runtime/topology baseline | **W10 / trước 12/10** | Khải | compose + service readiness + RabbitMQ/Postgres/Redis/MinIO boundaries chạy được |
+| CD + migration + image pipeline | **W11 / trước 19/10** | Khải | build/push image; deploy staging/VPS; migrate; health/readiness; smoke pass |
+| Release rehearsal | **W12** | Khải + cả nhóm | deploy lại từ version/tag mới không thao tác ad-hoc |
 | MVP release | **30/10** | Cả nhóm | regression xanh + deploy reproducible + demo end-to-end |
 
 ## 4. Release roadmap
@@ -52,50 +52,50 @@
 
 | Cycle | Thời gian | Giai đoạn | Hùng | Khải | Kiên | Thắng | Việc lặp lại / gate | Release / mốc | Báo GV |
 |---|---|---|---|---|---|---|---|---|---|
-| B0 | 27/09–05/10/2026 | P1 · MVP | H-WP03 | K-WP09, K-WP11 | I-WP11 | T-WP01 | Contract/integration smoke + tracker update | — | Có |
-| W01 | 06/10–12/10/2026 | P1 · MVP | H-WP01 | K-WP01, K-WP10 | I-WP12 | T-WP02 | Contract/integration smoke + tracker update | — | Có |
-| W02 | 13/10–19/10/2026 | P1 · MVP | H-WP05 | K-WP02, K-WP12 | I-WP05, I-WP17 | T-WP12 | Contract/integration smoke + tracker update | — | Có |
-| W03 | 20/10–26/10/2026 | P1 · MVP | H-WP02 | K-WP03, K-WP08 | I-WP06, I-WP15 | T-WP08 | Contract/integration smoke + tracker update | — | Có |
-| W04 | 27/10–02/11/2026 | P1 · MVP / Release | H-WP07, H-WP16 | K-WP04 | I-WP04, I-WP16 | T-WP07 | MVP freeze + regression + CD rehearsal + smoke test + release v0.1.0 | 30/10: v0.1.0 — MVP | Có |
-| W05 | 03/11–09/11/2026 | P2 · Core Expansion | H-WP10 | K-WP05 | I-WP13 | T-WP03 | Contract/integration smoke + tracker update | 09/11: Đăng ký đề tài KLTN window bắt đầu | Tuỳ chọn |
-| W06 | 10/11–16/11/2026 | P2 · Core Expansion | H-WP12 | K-WP06 | I-WP14 | T-WP10 | Contract/integration smoke + tracker update | — | Có |
-| W07 | 17/11–23/11/2026 | P2 · Core Expansion | H-WP13 | K-WP07 | I-WP03 | T-WP15 | Contract/integration smoke + tracker update | 20/11: v0.2.0 — Core Expansion 1 | Tuỳ chọn |
-| W08 | 24/11–30/11/2026 | P2 · Core Expansion | H-WP15 | K-WP13 | I-WP02 | T-WP16 | Contract/integration smoke + tracker update | — | Có |
-| W09 | 01/12–07/12/2026 | P2 · Core Expansion | H-WP04 | K-WP14 | I-WP01 | T-WP11 | Contract/integration smoke + tracker update | — | Tuỳ chọn |
-| W10 | 08/12–14/12/2026 | P2 · Core Expansion | H-WP11 | Buffer / integration / spillover | I-WP07 | T-WP04 | Contract/integration smoke + tracker update | 11/12: v0.3.0 — Core Expansion 2 | Có |
-| W11 | 15/12–21/12/2026 | P3 · Beta Preparation | H-WP09 | Buffer / integration / spillover | I-WP09 | T-WP05 | Contract/integration smoke + tracker update | — | Tuỳ chọn |
-| W12 | 22/12–28/12/2026 | P3 · Beta Preparation | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Contract/integration smoke + tracker update | — | Có |
-| W13 | 29/12–04/01/2027 | P3 · Beta Preparation | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Contract/integration smoke + tracker update | — | Tuỳ chọn |
-| W14 | 05/01–11/01/2027 | P3 · Beta Preparation | H-WP14 | Buffer / integration / spillover | I-WP08 | T-WP18 | Contract/integration smoke + tracker update | 08/01: v0.4.0 — Beta Candidate | Có |
-| W15 | 12/01–18/01/2027 | P3 · Beta Preparation | H-WP17 | Buffer / integration / spillover | I-WP10 | T-WP14 | Contract/integration smoke + tracker update | — | Tuỳ chọn |
-| W16 | 19/01–25/01/2027 | P4 · Beta Feedback & Data | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Feedback triage + data quality + issue backlog | 22/01: v0.5.0-beta.1 — Public Beta | Có |
-| W17 | 26/01–01/02/2027 | P4 · Beta Feedback & Data | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Feedback triage + data quality + issue backlog | — | Tuỳ chọn |
-| W18 | 02/02–08/02/2027 | P4 · Beta Feedback & Data | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Feedback triage + data quality + issue backlog | — | Có |
-| W19 | 09/02–15/02/2027 | P4 · Beta Feedback & Data | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Feedback triage + data quality + issue backlog | — | Tuỳ chọn |
-| W20 | 16/02–22/02/2027 | P4 · Beta Feedback & Data | H-WP18 | Buffer / integration / spillover | Buffer / integration / spillover | T-WP13 | Feedback triage + data quality + issue backlog | 19/02: v0.5.0-beta.2 — Feedback Release 1 | 22/02: Nộp đề cương KLTN window bắt đầu | Có |
-| W21 | 23/02–01/03/2027 | P4 · Beta Feedback & Data | H-WP08 | Buffer / integration / spillover | Buffer / integration / spillover | T-WP06 | Feedback triage + data quality + issue backlog | — | Tuỳ chọn |
-| W22 | 02/03–08/03/2027 | P4 · Beta Feedback & Data | H-WP06 | Buffer / integration / spillover | Buffer / integration / spillover | T-WP17 | Feedback triage + data quality + issue backlog | 05/03: v0.5.0-beta.3 — Feedback Release 2 | Có |
-| W23 | 09/03–15/03/2027 | P4 · Beta Feedback & Data | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | T-WP09 | Feedback triage + data quality + issue backlog | — | Tuỳ chọn |
-| W24 | 16/03–22/03/2027 | P4 · Beta Feedback & Data | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Feedback triage + data quality + issue backlog | 19/03: v0.5.0-beta.4 — Feedback Release 3 | Có |
-| W25 | 23/03–29/03/2027 | P4 · Beta Feedback & Data | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Feedback triage + data quality + issue backlog | — | Tuỳ chọn |
-| W26 | 30/03–05/04/2027 | P5 · Research, Quality & Completion | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Regression/metrics + report writing + evidence capture | 31/03: DATA-FREEZE — Data & Feedback Freeze | Có |
-| W27 | 06/04–12/04/2027 | P5 · Research, Quality & Completion | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Regression/metrics + report writing + evidence capture | — | Tuỳ chọn |
-| W28 | 13/04–19/04/2027 | P5 · Research, Quality & Completion | H-FWP01 | K-FWP01 | Buffer / integration / spillover | Buffer / integration / spillover | Regression/metrics + report writing + evidence capture | 16/04: v0.6.0 — Research/Quality | 19/04: Báo cáo tiến độ / kỳ thi HK2 | Có |
-| W29 | 20/04–26/04/2027 | P5 · Research, Quality & Completion | Buffer / integration / spillover | Buffer / integration / spillover | I-FWP01 | T-FWP01 | Regression/metrics + report writing + evidence capture | — | Tuỳ chọn |
-| W30 | 27/04–03/05/2027 | P5 · Research, Quality & Completion | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Regression/metrics + report writing + evidence capture | — | Có |
-| W31 | 04/05–10/05/2027 | P5 · Research, Quality & Completion | Buffer / integration / spillover | K-FWP02 | Buffer / integration / spillover | Buffer / integration / spillover | Regression/metrics + report writing + evidence capture | 07/05: v0.7.0 — Feature Complete Candidate | Tuỳ chọn |
-| W32 | 11/05–17/05/2027 | P6 · Final Product/Data Freeze | H-FWP02 | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Regression/metrics + report writing + evidence capture | — | Có |
-| W33 | 18/05–24/05/2027 | P6 · Final Product/Data Freeze | Buffer / integration / spillover | K-FWP03 | Buffer / integration / spillover | T-FWP02 | Regression/metrics + report writing + evidence capture | — | Có |
-| W34 | 25/05–31/05/2027 | P6 · Final Product/Data Freeze | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Regression/metrics + report writing + evidence capture | 28/05: v1.0.0-rc1 — Release Candidate | Có |
-| W35 | 01/06–07/06/2027 | P7 · Thesis Finalization & Defense | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Critical hotfix only + report/slide/rehearsal | 04/06: v1.0.0 — Final Product Baseline | 06/06: Internal completion: product + data + experiments | Có |
-| W36 | 08/06–14/06/2027 | P7 · Thesis Finalization & Defense | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Critical hotfix only + report/slide/rehearsal | — | Có |
-| W37 | 15/06–21/06/2027 | P7 · Thesis Finalization & Defense | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Critical hotfix only + report/slide/rehearsal | — | Có |
-| W38 | 22/06–28/06/2027 | P7 · Thesis Finalization & Defense | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Critical hotfix only + report/slide/rehearsal | 28/06: Nộp đơn bảo vệ + bản cuối window | Có |
-| W39 | 29/06–05/07/2027 | P7 · Thesis Finalization & Defense | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Critical hotfix only + report/slide/rehearsal | — | Có |
-| W40 | 06/07–12/07/2027 | P7 · Thesis Finalization & Defense | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Critical hotfix only + report/slide/rehearsal | 12/07: Phản biện | Có |
-| W41 | 13/07–19/07/2027 | P7 · Thesis Finalization & Defense | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Critical hotfix only + report/slide/rehearsal | 19/07: Bảo vệ KLTN window bắt đầu | Tuỳ chọn |
-| W42 | 20/07–26/07/2027 | P7 · Thesis Finalization & Defense | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Critical hotfix only + report/slide/rehearsal | — | Có |
-| W43 | 27/07–02/08/2027 | P7 · Thesis Finalization & Defense | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Critical hotfix only + report/slide/rehearsal | — | Tuỳ chọn |
+| W09 | 27/09–05/10/2026 | P1 · MVP | H-WP03 | K-WP09, K-WP11 | I-WP11 | T-WP01 | Contract/integration smoke + tracker update | — | Có |
+| W10 | 06/10–12/10/2026 | P1 · MVP | H-WP01 | K-WP01, K-WP10 | I-WP12 | T-WP02 | Contract/integration smoke + tracker update | — | Có |
+| W11 | 13/10–19/10/2026 | P1 · MVP | H-WP05 | K-WP02, K-WP12 | I-WP05, I-WP17 | T-WP12 | Contract/integration smoke + tracker update | — | Có |
+| W12 | 20/10–26/10/2026 | P1 · MVP | H-WP02 | K-WP03, K-WP08 | I-WP06, I-WP15 | T-WP08 | Contract/integration smoke + tracker update | — | Có |
+| W13 | 27/10–02/11/2026 | P1 · MVP / Release | H-WP07, H-WP16 | K-WP04 | I-WP04, I-WP16 | T-WP07 | MVP freeze + regression + CD rehearsal + smoke test + release v0.1.0 | 30/10: v0.1.0 — MVP | Có |
+| W14 | 03/11–09/11/2026 | P2 · Core Expansion | H-WP10 | K-WP05 | I-WP13 | T-WP03 | Contract/integration smoke + tracker update | 09/11: Đăng ký đề tài KLTN window bắt đầu | Tuỳ chọn |
+| W15 | 10/11–16/11/2026 | P2 · Core Expansion | H-WP12 | K-WP06 | I-WP14 | T-WP10 | Contract/integration smoke + tracker update | — | Có |
+| W16 | 17/11–23/11/2026 | P2 · Core Expansion | H-WP13 | K-WP07 | I-WP03 | T-WP15 | Contract/integration smoke + tracker update | 20/11: v0.2.0 — Core Expansion 1 | Tuỳ chọn |
+| W17 | 24/11–30/11/2026 | P2 · Core Expansion | H-WP15 | K-WP13 | I-WP02 | T-WP16 | Contract/integration smoke + tracker update | — | Có |
+| W18 | 01/12–07/12/2026 | P2 · Core Expansion | H-WP04 | K-WP14 | I-WP01 | T-WP11 | Contract/integration smoke + tracker update | — | Tuỳ chọn |
+| W19 | 08/12–14/12/2026 | P2 · Core Expansion | H-WP11 | Buffer / integration / spillover | I-WP07 | T-WP04 | Contract/integration smoke + tracker update | 11/12: v0.3.0 — Core Expansion 2 | Có |
+| W20 | 15/12–21/12/2026 | P3 · Beta Preparation | H-WP09 | Buffer / integration / spillover | I-WP09 | T-WP05 | Contract/integration smoke + tracker update | — | Tuỳ chọn |
+| W21 | 22/12–28/12/2026 | P3 · Beta Preparation | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Contract/integration smoke + tracker update | — | Có |
+| W22 | 29/12–04/01/2027 | P3 · Beta Preparation | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Contract/integration smoke + tracker update | — | Tuỳ chọn |
+| W23 | 05/01–11/01/2027 | P3 · Beta Preparation | H-WP14 | Buffer / integration / spillover | I-WP08 | T-WP18 | Contract/integration smoke + tracker update | 08/01: v0.4.0 — Beta Candidate | Có |
+| W24 | 12/01–18/01/2027 | P3 · Beta Preparation | H-WP17 | Buffer / integration / spillover | I-WP10 | T-WP14 | Contract/integration smoke + tracker update | — | Tuỳ chọn |
+| W25 | 19/01–25/01/2027 | P4 · Beta Feedback & Data | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Feedback triage + data quality + issue backlog | 22/01: v0.5.0-beta.1 — Public Beta | Có |
+| W26 | 26/01–01/02/2027 | P4 · Beta Feedback & Data | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Feedback triage + data quality + issue backlog | — | Tuỳ chọn |
+| W27 | 02/02–08/02/2027 | P4 · Beta Feedback & Data | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Feedback triage + data quality + issue backlog | — | Có |
+| W28 | 09/02–15/02/2027 | P4 · Beta Feedback & Data | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Feedback triage + data quality + issue backlog | — | Tuỳ chọn |
+| W29 | 16/02–22/02/2027 | P4 · Beta Feedback & Data | H-WP18 | Buffer / integration / spillover | Buffer / integration / spillover | T-WP13 | Feedback triage + data quality + issue backlog | 19/02: v0.5.0-beta.2 — Feedback Release 1 | 22/02: Nộp đề cương KLTN window bắt đầu | Có |
+| W30 | 23/02–01/03/2027 | P4 · Beta Feedback & Data | H-WP08 | Buffer / integration / spillover | Buffer / integration / spillover | T-WP06 | Feedback triage + data quality + issue backlog | — | Tuỳ chọn |
+| W31 | 02/03–08/03/2027 | P4 · Beta Feedback & Data | H-WP06 | Buffer / integration / spillover | Buffer / integration / spillover | T-WP17 | Feedback triage + data quality + issue backlog | 05/03: v0.5.0-beta.3 — Feedback Release 2 | Có |
+| W32 | 09/03–15/03/2027 | P4 · Beta Feedback & Data | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | T-WP09 | Feedback triage + data quality + issue backlog | — | Tuỳ chọn |
+| W33 | 16/03–22/03/2027 | P4 · Beta Feedback & Data | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Feedback triage + data quality + issue backlog | 19/03: v0.5.0-beta.4 — Feedback Release 3 | Có |
+| W34 | 23/03–29/03/2027 | P4 · Beta Feedback & Data | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Feedback triage + data quality + issue backlog | — | Tuỳ chọn |
+| W35 | 30/03–05/04/2027 | P5 · Research, Quality & Completion | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Regression/metrics + report writing + evidence capture | 31/03: DATA-FREEZE — Data & Feedback Freeze | Có |
+| W36 | 06/04–12/04/2027 | P5 · Research, Quality & Completion | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Regression/metrics + report writing + evidence capture | — | Tuỳ chọn |
+| W37 | 13/04–19/04/2027 | P5 · Research, Quality & Completion | H-FWP01 | K-FWP01 | Buffer / integration / spillover | Buffer / integration / spillover | Regression/metrics + report writing + evidence capture | 16/04: v0.6.0 — Research/Quality | 19/04: Báo cáo tiến độ / kỳ thi HK2 | Có |
+| W38 | 20/04–26/04/2027 | P5 · Research, Quality & Completion | Buffer / integration / spillover | Buffer / integration / spillover | I-FWP01 | T-FWP01 | Regression/metrics + report writing + evidence capture | — | Tuỳ chọn |
+| W39 | 27/04–03/05/2027 | P5 · Research, Quality & Completion | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Regression/metrics + report writing + evidence capture | — | Có |
+| W40 | 04/05–10/05/2027 | P5 · Research, Quality & Completion | Buffer / integration / spillover | K-FWP02 | Buffer / integration / spillover | Buffer / integration / spillover | Regression/metrics + report writing + evidence capture | 07/05: v0.7.0 — Feature Complete Candidate | Tuỳ chọn |
+| W41 | 11/05–17/05/2027 | P6 · Final Product/Data Freeze | H-FWP02 | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Regression/metrics + report writing + evidence capture | — | Có |
+| W42 | 18/05–24/05/2027 | P6 · Final Product/Data Freeze | Buffer / integration / spillover | K-FWP03 | Buffer / integration / spillover | T-FWP02 | Regression/metrics + report writing + evidence capture | — | Có |
+| W43 | 25/05–31/05/2027 | P6 · Final Product/Data Freeze | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Regression/metrics + report writing + evidence capture | 28/05: v1.0.0-rc1 — Release Candidate | Có |
+| W44 | 01/06–07/06/2027 | P7 · Thesis Finalization & Defense | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Critical hotfix only + report/slide/rehearsal | 04/06: v1.0.0 — Final Product Baseline | 06/06: Internal completion: product + data + experiments | Có |
+| W45 | 08/06–14/06/2027 | P7 · Thesis Finalization & Defense | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Critical hotfix only + report/slide/rehearsal | — | Có |
+| W46 | 15/06–21/06/2027 | P7 · Thesis Finalization & Defense | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Critical hotfix only + report/slide/rehearsal | — | Có |
+| W47 | 22/06–28/06/2027 | P7 · Thesis Finalization & Defense | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Critical hotfix only + report/slide/rehearsal | 28/06: Nộp đơn bảo vệ + bản cuối window | Có |
+| W48 | 29/06–05/07/2027 | P7 · Thesis Finalization & Defense | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Critical hotfix only + report/slide/rehearsal | — | Có |
+| W49 | 06/07–12/07/2027 | P7 · Thesis Finalization & Defense | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Critical hotfix only + report/slide/rehearsal | 12/07: Phản biện | Có |
+| W50 | 13/07–19/07/2027 | P7 · Thesis Finalization & Defense | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Critical hotfix only + report/slide/rehearsal | 19/07: Bảo vệ KLTN window bắt đầu | Tuỳ chọn |
+| W51 | 20/07–26/07/2027 | P7 · Thesis Finalization & Defense | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Critical hotfix only + report/slide/rehearsal | — | Có |
+| W52 | 27/07–02/08/2027 | P7 · Thesis Finalization & Defense | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Buffer / integration / spillover | Critical hotfix only + report/slide/rehearsal | — | Tuỳ chọn |
 
 ## 6. Nhịp họp cố định
 

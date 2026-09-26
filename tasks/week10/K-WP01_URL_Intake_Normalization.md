@@ -2,7 +2,7 @@
 
 **Owner:** Khải  
 **Module:** M02 URL & Website Risk Scan  
-**Cycle:** B0 · 27/09/2026 → 05/10/2026  
+**Cycle:** W10 · 06/10/2026 → 12/10/2026  
 **Feature IDs:** M02-F001…F008  
 **Release target:** MVP v0.1.0
 

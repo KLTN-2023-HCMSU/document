@@ -1,7 +1,7 @@
 # TEAM-C01 — Contract Freeze v1 + Baseline Audit
 
 **Owner:** Cả nhóm (một người làm contract editor tại một thời điểm)  
-**Cycle:** B0 · 27/09/2026 → 05/10/2026  
+**Cycle:** W09 · 27/09/2026 → 05/10/2026  
 **Goal:** khóa các seam cần để 4 owner code song song mà không đoán contract.
 
 
