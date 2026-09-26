@@ -12,3 +12,5 @@
 !/plan/**
 !/schema
 !/schema/**
+!/tasks
+!/tasks/**
