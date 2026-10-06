@@ -9,7 +9,7 @@
 
 ## 1. Deadline tuần này — đối chiếu timeline
 
-Theo [Timeline V2.1](../../plan/v2.1/Timeline_full_Anti_Scam_2026_2027_V2.1.md) và [task K-MVP01](../../tasks/W09/K-MVP01_Secrets_CI_URL_Worker_Contract.md), hạn **05/10**:
+Theo [Timeline V2.1](../../../plan/v2.1/Timeline_full_Anti_Scam_2026_2027_V2.1.md) và [task K-MVP01](../../../tasks/W09/K-MVP01_Secrets_CI_URL_Worker_Contract.md), hạn **05/10**:
 
 | Mã | Việc theo timeline | Trạng thái | PR |
 |---|---|---|---|
@@ -48,7 +48,7 @@ Theo [Timeline V2.1](../../plan/v2.1/Timeline_full_Anti_Scam_2026_2027_V2.1.md) 
 | PR mở / đã merge | **2 / 1** — #6 đã merge; #9 đang mở |
 | Test thêm mới trong tuần | **32 ca**: 13 Java (gồm tham số hóa), 11 URL contract, 8 gate/workflow; thêm scanner negative control |
 | Kiểm tra local bản CI bổ sung | **152 test đạt**: Java 40, Python legacy 25, web 68, URL contract 11, gate/workflow 8 |
-| Kiểm tra khác | Docker/PostgreSQL smoke, actionlint, web lint/build/typecheck/type generation và secret scan đạt; production audit 0 finding; OpenAPI hợp lệ với 4 warning |
+| Kiểm tra khác | Docker/PostgreSQL smoke, actionlint, web lint/build/typecheck/type generation và secret scan đạt; production audit 0 finding tại lần chạy 05/10; OpenAPI hợp lệ với 4 warning |
 | GitHub CI | #6/main xanh; [PR #9: 8/8 job đạt](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/actions/runs/37341308147), gồm Docker/PostgreSQL và `required-ci` |
 | P0 đóng tuần này / lũy kế | Chưa tổng hợp theo backlog V2; không quy đổi slice thành WP hoàn tất |
 
@@ -65,11 +65,19 @@ Evidence local và CI ngày **05/10**, nguồn tại commit [`4e92abd`](https://
 
 | Rủi ro | Mức | Dấu hiệu | Đề xuất |
 |---|---|---|---|
-| Dependency phát triển còn advisory | Cao theo npm audit | Full audit còn 8 entry high; production audit sạch | Theo dõi bản vá tương thích; không coi secret scan là dependency audit |
+| Dependency phát triển còn advisory | Cao theo npm audit | Evidence 05/10: full audit còn 8 entry high; production audit sạch | Theo dõi bản vá tương thích; không coi secret scan là dependency audit |
 | Contract/runtime lệch khi tích hợp | Trung bình | Fixture đạt nhưng chưa có worker/broker thật | Review liên owner và thêm integration test cùng implementation W10–W11 |
 
 ## 8. Báo cáo tính năng đã nộp tuần này
 
-Chưa đóng trọn source WP. Tài liệu bàn giao: [K-MVP01 spec/evidence](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/blob/4e92abd645b72b4354821f5752e29f6146e2cb15/docs/specs/K-MVP01_security_url_contracts.md), [URL contracts](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/blob/4e92abd645b72b4354821f5752e29f6146e2cb15/contracts/events/README.md), cùng PR #6 và #9.
+Bộ báo cáo W09 đã bổ sung ngày 06/10 theo cấu trúc thư mục cá nhân; chưa đồng nghĩa đóng trọn source WP.
 
-*Cập nhật: 05/10/2026 · Theo Mẫu 02 — Báo cáo tuần cá nhân · CI bổ sung: `fix/K-MVP01-ci-hardening`, commit `4e92abd`.*
+| Loại | File |
+|---|---|
+| Báo cáo tính năng | [BCTN_K-MVP01_Secrets_CI_URL_Worker_Contract_Khai.md](BCTN_K-MVP01_Secrets_CI_URL_Worker_Contract_Khai.md) |
+| Báo cáo kiểm thử | [BCKT_K-MVP01_Secrets_CI_URL_Contract_Khai.md](BCKT_K-MVP01_Secrets_CI_URL_Contract_Khai.md) |
+| Mô tả PR | [PR_K-MVP01_Secrets_CI_URL_Worker_Contract.md](PR_K-MVP01_Secrets_CI_URL_Worker_Contract.md) |
+
+Tài liệu triển khai: [K-MVP01 spec/evidence](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/blob/4e92abd645b72b4354821f5752e29f6146e2cb15/docs/specs/K-MVP01_security_url_contracts.md), [URL contracts](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/blob/4e92abd645b72b4354821f5752e29f6146e2cb15/contracts/events/README.md), cùng PR #6 và #9.
+
+*Cập nhật hồ sơ: 06/10/2026 · Kỳ báo cáo giữ nguyên 27/09–05/10/2026 · Theo Mẫu 02 — Báo cáo tuần cá nhân · CI bổ sung: `fix/K-MVP01-ci-hardening`, commit `4e92abd`.*
