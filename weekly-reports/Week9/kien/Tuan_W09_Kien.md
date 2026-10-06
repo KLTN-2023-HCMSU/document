@@ -11,7 +11,7 @@
 
 | Mã | Việc theo timeline | Hạn | Trạng thái | Evidence |
 |---|---|---|---|---|
-| I-MVP01 | Scan/entity/risk contracts + rule repository baseline | 05/10 | ✅ Hoàn thành implementation slice | `8d02692` – `ead99af` |
+| I-MVP01 | Scan/entity/risk contracts + rule repository baseline | 05/10 | ✅ Hoàn thành implementation slice; refactor contract follow-up 06/10 | `8d02692` – `ead99af`, `041216a`, `c7ecfeb` |
 
 ## 2. Đã làm gì
 
@@ -20,6 +20,7 @@
 - Implement canonical request hash, replay/conflict semantics và Redis/in-memory idempotency adapters.
 - Freeze processor registry, queue/routing keys, entity PHONE/BANK normalization, `NO_DATA`/unavailable semantics, risk/threat mock ports.
 - Tạo PostgreSQL migration V3 `rules`/`rule_versions`; smoke Flyway từ DB rỗng và Hibernate JSONB validation.
+- Refactor `ValidatedScanCommand` sang sealed typed payload; đưa `EntityType` vào đúng `EntityScanPayload` và đóng tập TEXT bằng `TextContentType` enum, không đổi HTTP/MQ contracts.
 
 ## 3. Đã review code của ai
 
@@ -38,9 +39,9 @@
 
 | Chỉ số | Giá trị |
 |---|---|
-| Commit I-MVP01 | 12 commit implementation/docs/fix evidence |
-| Test contract URL | 11/11 pass |
-| Maven suite | pass tại thời điểm nghiệm thu W09 |
+| Commit I-MVP01 | 14 commit implementation/docs/fix/refactor evidence |
+| Test contract URL | 11/11 pass tại evidence W09 |
+| Maven suite | `./mvnw test -q` pass sau refactor typed payload/enum (06/10) |
 | OpenAPI | valid; 5 warning baseline ngoài scope |
 | Migration smoke | PostgreSQL 16, Flyway V1–V3 pass |
 
@@ -57,6 +58,7 @@
 |---|---|---|---|
 | Contract bị đổi khi W10 integration | Trung bình | Worker/UI tự tạo DTO/routing khác W09 | Bắt consumer dùng OpenAPI, fixture và port W09 |
 | Redis atomic semantics chưa integration-test với Redis thật | Trung bình | Unit dùng in-memory; adapter có Lua script | Thêm Redis integration test khi I-MVP02 dựng runtime |
+| Consumer nội bộ còn dùng string cho TEXT type | Thấp | Bypass `TextScanPayload` để tự dựng transport map | Giữ enum trong command core; chỉ serialize `.name()` tại `JobRouter` |
 
 ## 8. Báo cáo tính năng đã nộp
 

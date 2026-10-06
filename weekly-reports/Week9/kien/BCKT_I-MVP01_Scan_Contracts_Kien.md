@@ -4,8 +4,8 @@
 |---|---|
 | **Mã nhóm** | `I-MVP01` |
 | **Người kiểm thử** | Kiên |
-| **Ngày chạy** | 05/10/2026 |
-| **Phiên bản code** | `ead99af` (kèm các commit implementation W09) |
+| **Ngày chạy** | 05/10/2026; cập nhật regression 06/10/2026 |
+| **Phiên bản code** | `ead99af`, `041216a`, `c7ecfeb` |
 | **Môi trường** | Local Java 17 target / H2 test; Docker PostgreSQL 16 smoke |
 
 ## 1. Mục tiêu kiểm thử
@@ -26,7 +26,7 @@ Chứng minh request scan công khai không bị duplicate khi retry, không dis
 
 | # | Ca | Đầu vào | Kỳ vọng | Kết quả | Đạt |
 |---|---|---|---|---|---|
-| 1 | Entity type sai cho URL | URL command + `PHONE` | Reject trước route | `ScanContractModelTest` pass | ✅ |
+| 1 | Payload type không mâu thuẫn | URL/QR/TEXT payload | Không có trường `entityType`; chỉ `EntityScanPayload` nhận `EntityType` | `ScanContractModelTest` pass | ✅ |
 | 2 | ENTITY thiếu entity type | ENTITY command + null | Reject | `ScanContractModelTest` pass | ✅ |
 | 3 | Hash semantic | Payload cùng field khác thứ tự | Cùng SHA-256 | `IdempotencyContractTest` pass | ✅ |
 | 4 | Retry cùng key/hash | Same actor/key/hash | Replay, bus chỉ 1 message | `ScanRoutingContractTest` pass | ✅ |
@@ -38,6 +38,8 @@ Chứng minh request scan công khai không bị duplicate khi retry, không dis
 | 10 | Rule loader | Enabled/disabled rules | Chỉ active published enabled rule được load | `RuleRepositoryTest` pass | ✅ |
 | 11 | Worker timestamp sai | `processedAt="yesterday"` | Reject contract | 11/11 Python tests pass | ✅ |
 | 12 | DB từ rỗng | PostgreSQL 16 | Flyway V1–V3, Hibernate validate, API start | Smoke pass | ✅ |
+| 13 | TEXT content type đóng tập | `TextContentType.MESSAGE` / `null` | Enum hợp lệ được nhận; null bị reject | `ScanContractModelTest` pass | ✅ |
+| 14 | TEXT transport compatibility | `TextContentType.MESSAGE` | Job payload vẫn là `contentType: "MESSAGE"` | `ScanRoutingContractTest` pass | ✅ |
 
 ## 4. Cách chạy lại
 
@@ -74,8 +76,8 @@ Không áp dụng — I-MVP01 không chạy Rule Engine/Risk Fusion và không t
 
 | Câu hỏi | Trả lời |
 |---|---|
-| Số ca được liệt kê | 12 |
-| Số ca đạt | 12 trong phạm vi W09 |
+| Số ca được liệt kê | 14 |
+| Số ca đạt | 14 trong phạm vi W09/refactor follow-up |
 | Đủ điều kiện nghiệm thu I-MVP01? | ☑ Rồi, ở mức implementation slice/contract baseline |
 | Rủi ro còn lại | Runtime RabbitMQ/Redis/lifecycle/risk fusion thuộc W10 |
 | Kiến nghị | Review chéo OpenAPI/routing với owner URL/Text/QR trước merge |

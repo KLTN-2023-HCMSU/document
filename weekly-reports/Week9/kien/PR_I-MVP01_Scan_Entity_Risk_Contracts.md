@@ -6,7 +6,7 @@ I-MVP01 · Scan / Entity / Risk Contracts + Rule Repository Baseline
 
 ## PR này làm gì
 
-Freeze nền tảng W09 để URL, Text, Entity và QR có thể nhận request/dispatch song song mà không phụ thuộc scan lifecycle W10. PR thêm contract `/v1/scans/*`, idempotency scoped theo actor, routing registry, entity/threat/risk ports, fake bus/mock và baseline `rules`/`rule_versions`.
+Freeze nền tảng W09 để URL, Text, Entity và QR có thể nhận request/dispatch song song mà không phụ thuộc scan lifecycle W10. PR thêm contract `/v1/scans/*`, idempotency scoped theo actor, routing registry, entity/threat/risk ports, fake bus/mock và baseline `rules`/`rule_versions`. Follow-up refactor thay generic map trong command core bằng sealed `ScanPayload`; TEXT dùng `TextContentType` enum.
 
 ## Vì sao làm theo cách này
 
@@ -14,6 +14,8 @@ Freeze nền tảng W09 để URL, Text, Entity và QR có thể nhận request/
 - Dùng request hash canonical SHA-256 để retry cùng semantic payload replay được dù thứ tự JSON khác nhau; key reuse với payload khác bị chặn 409.
 - Không dùng `Optional` cho threat lookup: `NO_DATA` và `REPUTATION_UNAVAILABLE` có ý nghĩa nghiệp vụ khác nhau, và không được map thành SAFE.
 - Rule condition lưu PostgreSQL `JSONB`; JPA dùng `SqlTypes.JSON` để Hibernate validation khớp Flyway migration.
+- `ValidatedScanCommand` derive `scanType()` từ typed payload; `EntityType` chỉ tồn tại trong `EntityScanPayload`, tránh combination không hợp lệ.
+- `JobRouter` chỉ chuyển payload typed sang `Map<String,String>` tại message boundary. `TextContentType.name()` giữ nguyên payload bus (`MESSAGE` / `TRANSACTION_POST`) và request-hash semantics.
 
 ## Loại thay đổi
 
@@ -51,6 +53,7 @@ PostgreSQL smoke đã chạy local: Flyway V1–V3 từ DB rỗng, Hibernate val
 - [x] OpenAPI được cập nhật và lint valid
 - [x] Migration chạy từ PostgreSQL rỗng
 - [x] Không thêm lifecycle, worker consumer, DLQ hay final verdict ngoài scope W09
+- [x] Typed payload/enum không thay OpenAPI, queue, event name hoặc message payload ngoài boundary
 - [ ] Chờ reviewer chéo approve
 
 ## Báo cáo tính năng

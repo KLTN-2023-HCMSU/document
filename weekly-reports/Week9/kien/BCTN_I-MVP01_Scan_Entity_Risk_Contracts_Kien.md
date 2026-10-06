@@ -12,7 +12,7 @@
 | **Tuần / Sprint** | W09 · 27/09–05/10/2026 |
 | **Mốc kiến trúc** | Timeline V2.1 · Architecture V3.3 |
 | **Pull Request** | Chưa mở; branch `feat/I-MVP01-scan-entity-risk-contracts` |
-| **Commit chính** | `8d02692` → `ead99af` |
+| **Commit chính** | `8d02692` → `ead99af`, `041216a`, `c7ecfeb` |
 | **Trạng thái** | ☑ Hoàn thành implementation slice W09 · ☐ Chưa merge/review chéo |
 | **Ngày nộp báo cáo** | 05/10/2026 |
 
@@ -28,7 +28,8 @@
 
 | Ưu tiên | Tính năng | Bằng chứng |
 |---|---|---|
-| P0 | `ValidatedScanCommand`, `ScanType = URL/TEXT/ENTITY/QR`, `EntityType = PHONE/BANK_ACCOUNT` | `scan/contract/*`, `ScanContractModelTest` |
+| P0 | `ValidatedScanCommand` dùng `ScanPayload` sealed hierarchy; `ScanType = URL/TEXT/ENTITY/QR`; `EntityType = PHONE/BANK_ACCOUNT` chỉ thuộc `EntityScanPayload` | `scan/contract/*`, `ScanContractModelTest` |
+| P0 | TEXT content type đóng tập giá trị `MESSAGE` / `TRANSACTION_POST` | `TextContentType`, `TextScanPayload`, `ScanRoutingContractTest` |
 | P0 | Idempotency actor-scoped: same key + same hash replay; khác hash conflict | `RequestHasher`, `IdempotencyStore`, `IdempotencyContractTest` |
 | P0 | Routing ổn định tới 4 queue/routing key | `ProcessorRegistry`, `ScanRoutingContractTest` |
 | P0 | Guest/free access, ownership, history policy và quota gate trước dispatch | `ScanAccessGateTest`, `ScanIntakeService` |
@@ -69,7 +70,7 @@ Response W09 chỉ là `ScanDispatchAcceptance { accepted, replayed }`; **không
 | Cùng key, hash khác | `409 IDEMPOTENCY_KEY_CONFLICT` | Không publish |
 | Quota deny | `429 SCAN_QUOTA_EXCEEDED`, có `Retry-After` theo quota decision | Không publish |
 
-Hash chỉ dùng semantic input (`scanType`, `entityType`, payload canonical); không hash Authorization, correlation ID, timestamp hoặc chính idempotency key.
+Hash chỉ dùng semantic input (`scanType`, `entityType`, payload canonical); không hash Authorization, correlation ID, timestamp hoặc chính idempotency key. `TextContentType` được canonicalize bằng tên enum, nên hash và idempotency của payload TEXT vẫn giữ giá trị chuỗi như contract ngoài (`MESSAGE` / `TRANSACTION_POST`).
 
 ### 3.3. Routing contract
 
@@ -104,7 +105,8 @@ Migration [`V3__rule_repository_baseline.sql`](../../../Scam-Risk-Detector/servi
 
 ```mermaid
 flowchart TD
-    A[HTTP request / ValidatedScanCommand] --> B[Resolve AccessContext + EntitlementContext]
+    A[HTTP request] --> A1[Validate/normalize thành typed ScanPayload]
+    A1 --> B[ValidatedScanCommand + AccessContext + EntitlementContext]
     B --> C[ScanAccessGate + QuotaGate]
     C -->|deny| D[429; không publish]
     C -->|allow| E[IdempotencyStore: scope + key + request hash]
@@ -121,12 +123,13 @@ flowchart TD
 1. Quota chạy trước dispatch để request bị chặn không tiêu tốn worker/queue.
 2. Idempotency scope theo actor để key giống nhau của hai user/guest không gây conflict chéo.
 3. `NO_DATA` khác `REPUTATION_UNAVAILABLE`: cái đầu là chưa có dữ liệu uy tín, cái sau là dependency lỗi; cả hai không phải `SAFE`.
+4. `ValidatedScanCommand` không giữ đồng thời `scanType`, `entityType` và map payload: `scanType()` được derive từ payload; chỉ `EntityScanPayload` có `entityType`, nên không thể tạo URL/QR command mang entity type mâu thuẫn.
 
 ## 6. Cấu trúc mã nguồn
 
 | Vị trí | Trách nhiệm |
 |---|---|
-| `services/api/.../scan/contract/` | Vocabulary và output intake immutable |
+| `services/api/.../scan/contract/` | `ScanPayload` sealed hierarchy, `TextContentType`, vocabulary và output intake immutable |
 | `scan/application/ScanIntakeService.java` | Orchestration: quota → idempotency → route → publish |
 | `scan/idempotency/` | Canonical SHA-256, in-memory adapter, Redis Lua reservation atomic |
 | `scan/routing/ProcessorRegistry.java` | Nguồn mapping queue/routing key duy nhất |
@@ -143,6 +146,8 @@ flowchart TD
 | 2 | SHA-256 semantic request hash | Hash raw JSON / dùng key đơn lẻ | Thứ tự JSON không làm hash đổi; cùng intent được replay đúng | Controller W10 phải canonicalize trước tạo command |
 | 3 | Explicit `NO_DATA`/`UNAVAILABLE` | `Optional`/default SAFE | Không nhầm thiếu dữ liệu với an toàn hoặc lỗi dependency | Consumer phải xử lý thêm trạng thái |
 | 4 | PostgreSQL `JSONB` cho rule condition | Chuỗi text/varchar | Lưu rule condition có cấu trúc, phù hợp future Rule Engine | H2 test mô phỏng bằng mapping Hibernate; đã smoke PostgreSQL thật |
+| 5 | Payload typed thay `Map<String,String>` trong command core | Một command có `scanType`/`entityType` nullable + generic map | Compiler ngăn tổ hợp sai; ENTITY tự sở hữu `EntityType` | Adapter transport phải chuyển payload thành map rõ ràng ở boundary để tương thích event cũ |
+| 6 | `TextContentType` enum | `String` được validate ở HTTP adapter | Khóa đúng hai category từ module spec ngay trong application contract | HTTP/message bus tiếp tục trao đổi chuỗi enum name để không breaking |
 
 ## 8. Cấu hình và bảo mật
 
@@ -159,6 +164,7 @@ flowchart TD
 | Nhóm | Chứng minh |
 |---|---|
 | Contract Java | Guest/free policy, hash deterministic, replay/conflict, 4 route, quota-denied-no-publish, entity normalization, NO_DATA, mock port, active rule loading |
+| Typed payload refactor | `TextScanPayload` chỉ nhận `TextContentType`; null bị reject; routing TEXT vẫn phát `contentType=MESSAGE` |
 | OpenAPI | Redocly validate file `anti-scam-api.yaml` thành công; có 5 warning baseline ngoài I-MVP01 |
 | URL event contracts | `python -m unittest discover -s contracts/tests -v`: 11/11 pass |
 | PostgreSQL | Docker PostgreSQL 16: Flyway V1–V3 chạy từ DB rỗng và Hibernate validate `jsonb` pass; API startup thành công |
@@ -197,5 +203,7 @@ W09 chưa có public controller/runtime scan end-to-end, persistent scan state, 
 | 05/10/2026 | Core scan contracts | `8d02692` |
 | 05/10/2026 | OpenAPI, idempotency, routing, entity/risk/threat seams | `41cdf1e` – `d23bce5` |
 | 05/10/2026 | Rule repository, PostgreSQL JSONB, evidence | `400d50d` – `ead99af` |
+| 06/10/2026 | Typed `ScanPayload`; `EntityType` scoped vào entity payload | `041216a` |
+| 06/10/2026 | `TextContentType` enum; giữ hash và message-bus string compatibility | `c7ecfeb` |
 
 *Người viết: Kiên · Ngày: 05/10/2026 · Mẫu: BCTN v1.0*
