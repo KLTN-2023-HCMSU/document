@@ -32,3 +32,7 @@ Thư mục này được sử dụng để lưu trữ toàn bộ tài liệu li�
 1. **Không sử dụng khoảng trắng**: Dùng dấu gạch dưới `_` hoặc gạch nối `-` (VD: `Khao_sat_thi_truong.md` thay vì `Khao sat thi truong.md`).
 2. **Tiếng Việt không dấu**: Khuyến khích dùng tiếng Việt không dấu để tránh lỗi font khi mở trên các hệ điều hành khác nhau.
 3. **Thêm ngày tháng (nếu cần)**: Với các báo cáo tiến độ, nên thêm ngày tháng vào cuối tên file để dễ phân biệt (VD: `Weekly_Report_2026_07_14.md`).
+
+## Báo cáo bổ sung của Thắng
+
+[Mục lục W09–W13](weekly-reports/Thang_W09_W13.md) — báo cáo tuần, tính năng, kiểm thử và tài liệu demo; trạng thái review/nghiệm thu ghi trong từng file.
