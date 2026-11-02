@@ -54,3 +54,9 @@ Không áp dụng — không có benchmark detector/độ chính xác hoặc t�
 ## 7. Kết luận
 
 Có bằng chứng tự kiểm theo bảng; trạng thái merge xem BCTN, trạng thái nghiệm thu cần Kiên/nhóm xác nhận. Không tự điền chữ ký Kiên, G4 hoặc review mà Thắng chưa trực tiếp thực hiện.
+
+## Bổ sung regression tích hợp dev — 02/11/2026
+
+Bản W12 cập nhật dev: [`f6ba5a3`](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/commit/f6ba5a32e1898ad593c9431193a8104b86c5d683). [CI run 41473233723](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/actions/runs/41473233723) hoàn tất SUCCESS, 11/11 jobs gồm required-ci và Docker/PostgreSQL runtime smoke. Hai lượt trước phát hiện DDL M08 trùng và smoke PHONE dùng nhầm phạm vi W13; đã sửa trước lượt SUCCESS này.
+
+Local: Web 224/224 tests, typecheck/lint/build PASS; Java sau đồng bộ AuthPrincipal và đổi AI migration sang V13: 369 tổng, 0 failure/error, 15 skipped. Sau bỏ DDL M08 V11 trùng với V12 trên dev, chạy clean nhóm migration/threat/community contract: 5/5 PASS. Event contracts 26/26, scripts 16/16, runtime config và secret scan PASS. OpenAPI hợp lệ, còn 4 warnings. Kiểm chứng PostgreSQL cuối do CI thực hiện; Docker daemon local không hoạt động. PHONE trên PR #24 vẫn trả 503 theo phạm vi W12; processor thuộc W13. Không suy CI thành nghiệm thu G4/chữ ký Kiên.

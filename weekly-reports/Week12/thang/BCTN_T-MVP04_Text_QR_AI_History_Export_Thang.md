@@ -168,6 +168,12 @@ Chưa ghi nhận giờ làm thực tế, review cá nhân, thời điểm hoàn 
 
 | PR | Trạng thái GitHub tại lúc kiểm tra | Thời điểm merge UTC | Head snapshot |
 |---|---|---|---|
-| [#24](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/pull/24) | OPEN | Chưa merge | `25d42a106234` |
+| [#24](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/pull/24) | OPEN | Chưa merge | `f6ba5a3` (đồng bộ dev 02/11; snapshot cũ `25d42a106234`) |
 
 Ngày merge không phải ngày code hoàn thành. Báo cáo tuần không lấy trạng thái hiện tại gán ngược cho hạn cuối tuần.
+
+## Bổ sung tích hợp dev — 02/11/2026
+
+PR #24 cập nhật dev `3a54049`, giải quyết conflict OpenAPI, sinh lại API types và giữ cả kiểm tra runtime mailbox loopback/policy mount. Test W12 dùng AuthPrincipal có sessionId; smoke PHONE giữ đúng kỳ vọng 503 của W12 (processor PHONE nằm ở W13). Migration AI progress chưa merge chuyển V9 → V13; bỏ DDL M08 V11 trùng vì dev V12 đã sở hữu schema và FK community report theo bàn giao H-MVP04. Không sửa migration V12 đã có trên dev. Database QA dùng riêng từng áp dụng migration nhánh cũ cần dựng lại, không repair metadata môi trường dùng chung.
+
+Bản sửa: [`f6ba5a3`](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/commit/f6ba5a32e1898ad593c9431193a8104b86c5d683). [CI tích hợp mới](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/actions/runs/41473233723); kết quả cuối ghi trong BCKT. PR vẫn OPEN, chưa merge và chưa xác nhận G4.
