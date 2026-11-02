@@ -42,6 +42,12 @@ Thắng chưa có biên bản tổng duyệt người thật; Kiên chưa ký cr
 
 Phân công W13 do chủ sở hữu cung cấp trong quá trình làm việc; repo document chưa có task tương ứng, cần lead xác nhận cùng [timeline](../../../plan/v2.1/Timeline_full_Anti_Scam_2026_2027_V2.1.md).
 
+### 2.3. Bổ sung theo review của Kiên — 02/11/2026
+
+Trên [PR code #26](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/pull/26), commit [`162127a`](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/commit/162127afe8f305ad0cfd32f0d17fc56f2219ed23) đã sửa `ScanHistory`: trạng thái chưa hoàn tất, thất bại, payload thiếu kết luận hoặc kết quả SAFE bị degraded không còn được trình bày như một lượt quét an toàn. Giao diện hiển thị "Chưa có kết luận" hoặc "Chưa thể kết luận (dữ liệu chưa đầy đủ)" phù hợp. Bổ sung regression ở `ScanHistory.w13.test.tsx`, cập nhật spec, runbook và manifest chứng cứ PDF demo; không đổi public API.
+
+Giới hạn review vẫn giữ: BANK reputation hiện là `SYNTHETIC_DEMO` cho demo/G1, chưa có nguồn xác minh tài khoản ngân hàng production; không tự nhận G4. Cần kiểm tra chung với [Core PR #27](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/pull/27) trên cùng môi trường HTTP/broker/DB/staging, gồm `NO_DATA` không SAFE, `REPUTATION_UNAVAILABLE` degraded, owner/guest/IDOR và proof 404, cùng cấu trúc evidence/explanations/recommendations canonical. UI/PDF/XSS không chứng nhận CORE-REL01/DATA-01 hoặc thay chữ ký Kiên/Hùng. Hai PR code vẫn tách biệt, chưa merge vào `dev`.
+
 ---
 
 ## 3. Hợp đồng API
@@ -125,6 +131,8 @@ Cài dependency theo Maven wrapper/npm lockfile/requirements của repo code. Kh
 
 Sau merge dev: Web 219/219 PASS, scripts 20/20 PASS. GitHub CI của 0fe1949: 11/11 checks success, gồm required-ci và Docker/PostgreSQL smoke. Hồ sơ trước merge ghi web 211; giữ đúng source/run, không trộn thành một lần chạy.
 
+**Kiểm tra mới tại `162127a` (02/11):** Web 227/227 PASS, lint/typecheck/build PASS; Java 338 tests PASS, 17 skipped, không failure/error; scripts 20/20 PASS; gitleaks và `git diff --check` PASS. [GitHub Actions run 41407693178](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/actions/runs/41407693178) đã hoàn tất **11/11 jobs SUCCESS**, gồm `required-ci`. Trên worktree tạm ghép thay đổi UI với Core PR #27: Web 227/227, Java 380 tests (22 skipped), 26 event contracts, scripts 24/24 đều PASS; chưa chạy lại full HTTP E2E broker/PostgreSQL của tổ hợp do Docker daemon trên máy QA chưa hoạt động. Đây là bằng chứng tương thích mức test, chưa phải nghiệm thu staging/G4.
+
 [Báo cáo kiểm thử theo Template 04](BCKT_T-W13_UI_XSS_PDF_Demo_Thang.md) · [Spec triển khai](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/blob/0fe194976260bba5b7d82553ee0d51a5b644fa7c/docs/specs/T-W13_ui_xss_pdf_demo.md) · [Hồ sơ kiểm chứng](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/blob/0fe194976260bba5b7d82553ee0d51a5b644fa7c/docs/specs/T-W13_phone_https_acceptance.md)
 
 ---
@@ -172,9 +180,10 @@ Chưa ghi nhận giờ làm thực tế, review cá nhân, thời điểm hoàn 
 | Ngày | Nội dung |
 |---|---|
 | 29/10/2026 | Bổ sung hồi cứu theo Template 01, không nhận đã nộp đúng hạn |
+| 02/11/2026 | Đồng bộ sửa theo review Kiên tại PR #26, bổ sung test/CI snapshot và giới hạn staging/G4 |
 
 | PR | Trạng thái GitHub tại lúc kiểm tra | Thời điểm merge UTC | Head snapshot |
 |---|---|---|---|
-| [#26](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/pull/26) | OPEN | Chưa merge | `0fe194976260` |
+| [#26](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/pull/26) | OPEN | Chưa merge | `162127afe8f3` (bản cập nhật 02/11; `0fe194976260` là snapshot cũ) |
 
 Ngày merge không phải ngày code hoàn thành. Báo cáo tuần không lấy trạng thái hiện tại gán ngược cho hạn cuối tuần.

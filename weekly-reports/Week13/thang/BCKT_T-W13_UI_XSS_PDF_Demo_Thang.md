@@ -5,7 +5,7 @@
 | Mã nhóm | T-W13 |
 | Người kiểm thử | Thắng / bộ QA của nhánh; Kiên chưa xác nhận độc lập |
 | Ngày chạy | Theo hồ sơ nguồn từng lần; báo cáo hồi cứu lập 29/10/2026 |
-| Phiên bản code | PR/commit ở [BCTN](BCTN_T-W13_UI_XSS_PDF_Demo_Thang.md); link source hiện tại ghim `0fe194976260` |
+| Phiên bản code | Nguồn lịch sử ghim `0fe194976260`; bản cập nhật PR #26 ngày 02/11 ghim `162127afe8f3` theo [BCTN](BCTN_T-W13_UI_XSS_PDF_Demo_Thang.md) |
 | Môi trường | Phân biệt unit/fixture/sandbox/broker/DB/browser trong bảng và nguồn |
 
 ## 1. Mục tiêu kiểm thử
@@ -30,6 +30,8 @@ Kiểm chứng đúng phạm vi: UI-REG01, SEC-UI01, EXP-01, DEMO-RUN theo yêu 
 | 3 | PDF 5 loại | URL/Text/Phone/Bank/QR và evidence dài | A4 không tràn/trắng; có hash/proof/nhãn nguồn | Chrome/Firefox/Safari PDFs + manifest | PASS theo hồ sơ nguồn; không phải lượt chạy lại ngày soạn |
 | 4 | TLS/RBAC/SSRF | CA lạ, hostname sai, foreign USER, loopback URL | TLS reject, 403/404/400 tùy ca | HTTPS local security checks | PASS theo hồ sơ nguồn; không phải lượt chạy lại ngày soạn |
 | 5 | PR tích hợp dev | source head 0fe1949 | required-ci đủ job thành công | GitHub Actions 11/11 success | PASS theo hồ sơ nguồn; không phải lượt chạy lại ngày soạn |
+| 6 | Scan History hiển thị incomplete/degraded | PENDING/PROCESSING/FAILED, thiếu verdict, SAFE/degraded | không hiển thị sai nhãn SAFE | Regression 02/11 trên `162127a` | PASS web 227/227 ở snapshot mới |
+| 7 | CI bản sửa theo review | source head `162127a` | required-ci và các job thành công | [Actions run 41407693178](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/actions/runs/41407693178) | PASS 11/11 jobs, không tương đương G4 |
 
 ## 4. Cách chạy lại toàn bộ
 
@@ -46,6 +48,8 @@ npm run build
 ```
 
 Sau merge dev: Web 219/219 PASS, scripts 20/20 PASS. GitHub CI của 0fe1949: 11/11 checks success, gồm required-ci và Docker/PostgreSQL smoke. Hồ sơ trước merge ghi web 211; giữ đúng source/run, không trộn thành một lần chạy.
+
+**Bổ sung 02/11:** Trên PR #26, Web 227/227 tests, lint/typecheck/build PASS; Java 338 tests PASS (17 skipped), scripts 20/20, secret scan và diff check PASS. Đối chiếu tạm với Core PR #27: Web 227/227, Java 380 (22 skipped), contract 26/26, scripts 24/24 PASS. Chưa thực hiện lại full HTTP E2E cùng Docker broker/DB cho tổ hợp; Core PR #27 và PR #26 chưa merge với nhau. Kết quả review của Kiên yêu cầu phân biệt BANK `SYNTHETIC_DEMO`/G1 với dữ liệu xác minh thật và giữ các ca `NO_DATA`, `REPUTATION_UNAVAILABLE`, owner/guest/IDOR, proof 404 cùng CORE-REL01/DATA-01 ở trạng thái chờ xác minh độc lập.
 
 Lệnh cần service, credential hoặc opt-in không mặc nhiên chạy được trên máy chưa cấu hình. [Spec triển khai](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/blob/0fe194976260bba5b7d82553ee0d51a5b644fa7c/docs/specs/T-W13_ui_xss_pdf_demo.md) · [Hồ sơ kiểm chứng](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/blob/0fe194976260bba5b7d82553ee0d51a5b644fa7c/docs/specs/T-W13_phone_https_acceptance.md). [Chi tiết phạm vi và PR](BCTN_T-W13_UI_XSS_PDF_Demo_Thang.md).
 

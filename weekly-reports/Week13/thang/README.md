@@ -7,3 +7,5 @@ Nguồn: [Spec triển khai](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detect
 Bổ sung hồi cứu 29/10/2026 theo [quy định](../../../templates/00_Quy_dinh_bao_cao_code.md). Theo cấu trúc hiện có `weekly-reports/WeekN/<thanh-vien>/` như báo cáo W09 của nhóm; giữ tên file BCTN/BCKT/Tuan theo template. Không nhận đã nộp đúng hạn hoặc đã nghiệm thu nếu chưa có bằng chứng. [Mục lục W09–W13](../../Thang_W09_W13.md).
 
 [Slide HTML](W13_release_v0.1.0.html) · [Bản thảo chương báo cáo](Chuong_Web_Client_Async_AI_UIUX_Thang.md).
+
+**Cập nhật 02/11:** PR code #26 có commit [`162127a`](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/commit/162127afe8f305ad0cfd32f0d17fc56f2219ed23) sửa hiển thị Scan History khi dữ liệu incomplete/degraded và bổ sung regression; [required-ci PASS](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/actions/runs/41407693178). [BCTN](BCTN_T-W13_UI_XSS_PDF_Demo_Thang.md) và [BCKT](BCKT_T-W13_UI_XSS_PDF_Demo_Thang.md) ghi riêng snapshot mới, kết quả chạy và giới hạn G4/nhà cung cấp BANK. PR code vẫn OPEN, Kiên chưa ký nghiệm thu.

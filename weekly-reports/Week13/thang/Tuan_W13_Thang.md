@@ -31,11 +31,13 @@ Chờ review/handoff theo [BCTN](BCTN_T-W13_UI_XSS_PDF_Demo_Thang.md); phần ng
 
 ## 5. Số liệu tuần
 
-Commit/test **thêm mới trong tuần**, giờ làm và P0 đã nghiệm thu: chưa xác nhận. PR liên quan và trạng thái hiện tại ghi trong BCTN; không coi đó là số PR mở/merge đúng kỳ. CI của PR #26 có 11/11 checks success ở 0fe1949.
+Commit/test **thêm mới trong tuần**, giờ làm và P0 đã nghiệm thu: chưa xác nhận. PR liên quan và trạng thái hiện tại ghi trong BCTN; không coi đó là số PR mở/merge đúng kỳ. CI của PR #26 có 11/11 checks success ở snapshot 0fe1949 và tiếp tục 11/11 jobs SUCCESS ở bản sửa `162127a` ngày 02/11 ([Actions](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/actions/runs/41407693178)). Web 227/227 regression PASS tại snapshot mới; không suy thành cross-test/G4.
 
 ## 6. Kế hoạch tuần sau
 
 Hoàn tất phần còn nợ trong BCTN, bàn giao theo timeline/task kế tiếp; tổng duyệt và Kiên cross-test trước buổi trình diễn 30/10.
+
+**Cập nhật sau review Kiên (02/11):** Thêm guard ở Scan History để không hiển thị SAFE với dữ liệu incomplete/degraded; cập nhật spec/runbook và PDF demo manifest tại [PR #26](https://github.com/KLTN-2023-HCMSU/Scam-Risk-Detector/pull/26). BANK demo vẫn `SYNTHETIC_DEMO`; tích hợp staging với Core PR #27, CORE-REL01/DATA-01 và kiểm thử độc lập chưa được xác nhận. Đây là hoạt động bổ sung ngày 02/11, không tính ngược là đã xong trong mốc cũ.
 
 ## 7. Rủi ro tự nhận thấy
 
